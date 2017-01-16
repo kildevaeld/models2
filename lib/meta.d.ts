@@ -2,6 +2,7 @@
 import { Item } from './visitor';
 export interface GenerateOptions {
     split: boolean;
+    file: string;
 }
 export interface Result {
     name: string;

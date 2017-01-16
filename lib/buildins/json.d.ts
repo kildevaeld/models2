@@ -1,6 +1,8 @@
 import { Item, BaseVisitor } from '../visitor';
-import { Description } from '../meta';
+import { Description, GenerateOptions } from '../meta';
 export declare class JsonVisitor extends BaseVisitor {
+    options: GenerateOptions;
+    constructor(options: GenerateOptions);
     visitPackage(item: Item): any;
     visitRecord(item: Item): any;
     visitProperty(item: Item): any;

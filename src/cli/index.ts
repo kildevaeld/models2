@@ -1,19 +1,53 @@
 
 import * as program from 'commander';
+import { Generator } from '../generator'
 const pkg = require('../../package.json');
 
 
-function listTypes() {
+function listTypes(generator: Generator) {
+    let gens = generator.buildins;
+
+    console.log('Available generators: ')
+    for (let g of gens) {
+        console.log(g.name)
+    }
+}
+
+function generate(generator: Generator, cmd: program.ICommand, files: string[]) {
+
+    let template = cmd['template'];
+    let output = cmd['output']
+
+    generator.generate(template, { output: output }, files)
+        .then(() => console.log('Done'))
+        .catch(e => console.error(e.message));
 
 }
 
 
-export function run() {
+export async function run() {
+
+    var generator = new Generator();
+
+    await generator.loadBuildins();
+
     program.version(pkg.version);
 
-    program.option("-t, --template <template>", 'use templates')
+    program.command("ls").action(() => {
+        listTypes(generator);
+    })
 
-    program.command("list")
+    let cmd = program
+        .command('gen')
+        .option("-t, --template <template>", 'use templates')
+        .option("-o, --output <path>", "out", ".")
+        .arguments('<files...>').action((files) => {
+            generate(generator, cmd, files);
+        });
+
+
 
     program.parse(process.argv);
+
+
 }

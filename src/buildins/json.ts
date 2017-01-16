@@ -1,9 +1,13 @@
 
 import { Item, BaseVisitor } from '../visitor';
 import { Type, Modifier } from '../tokens'
-import { Description, Result } from '../meta'
+import { Description, Result, GenerateOptions } from '../meta'
 
 export class JsonVisitor extends BaseVisitor {
+
+    constructor(public options: GenerateOptions) {
+        super();
+    }
 
     visitPackage(item: Item): any {
         return {
@@ -14,7 +18,7 @@ export class JsonVisitor extends BaseVisitor {
     visitRecord(item: Item): any {
         return {
             name: item[1],
-            props: this.visit(item[2])
+            properties: this.visit(item[2])
         }
     }
     visitProperty(item: Item): any {
@@ -48,10 +52,13 @@ export class JsonVisitor extends BaseVisitor {
 export const Meta: Description = {
     name: "Json",
     extname: ".json",
-    run: (item: Item): Promise<Result[]> => {
-        let visitor = new JsonVisitor();
+    run: (item: Item, options: GenerateOptions): Promise<Result[]> => {
+        let visitor = new JsonVisitor(options);
         let json = visitor.parse(item);
 
-        return null;
+        return Promise.resolve([{
+            data: new Buffer(JSON.stringify(json, null, 2)),
+            name: options.file
+        }]);
     }
 }
