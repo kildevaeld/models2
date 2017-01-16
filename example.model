@@ -9,7 +9,7 @@ record Person {
 	name: string;
 	description: string?;
 	age: int;
-	cool: bool;
+	cool: [bool]?;
 }
 
 record Model2 {

@@ -1,6 +1,7 @@
 
 import { Item, BaseVisitor } from '../visitor';
 import { Type, Modifier } from '../tokens'
+import { Description, Result } from '../meta'
 
 export class JsonVisitor extends BaseVisitor {
 
@@ -42,4 +43,15 @@ export class JsonVisitor extends BaseVisitor {
         return Modifier[item[1]];
     }
 
+}
+
+export const Meta: Description = {
+    name: "Json",
+    extname: ".json",
+    run: (item: Item): Promise<Result[]> => {
+        let visitor = new JsonVisitor();
+        let json = visitor.parse(item);
+
+        return null;
+    }
 }

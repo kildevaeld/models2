@@ -44,16 +44,26 @@ RecordBody
 
 Property
 	= a:Annotation _m p:Property { return a.concat([p]) }
-    / name:alpha+ o:'?'? _m ":" _m  type:Type _m semi {
+    / name:alpha+ o:'?'? _m ":" _m  type:PropertyType _m semi {
     	return [Token.Property, name.join(''), type]
     }
 
+PropertyType
+	= "[" _m t:Type _m "]" mod:Modifier? { 
+			t.push([[Token.Modifier, Modifier.Repeated]])
+			if (mod) t[2].push(mod)	
+			return t; 
+		}
+	/ t:Type mod:Modifier? {
+		t.push([])
+		if (mod) t[2].push(mod);
+		return t
+	 }
+
 Type 
 	= t:ImportType
-	/ t:BuildInType mod:Modifier? { return [Token.BuildinType, t, mod||[]]}
+	/ t:BuildInType { return [Token.BuildinType, t]}
 
-//BuildInType
-//	= a:([a-zA-Z][a-zA-Z0-9]+) mod:Modifier? { return [Token.BuildinType,lodash.flatten(a).join(''), mod||[]]; }
 
 BuildInType
 	= "string" { return Type.String; }
@@ -73,8 +83,8 @@ BuildInType
 	/ "float" { return Type.Float; }
 
 ImportType
-	= p:([a-zA-Z][a-zA-Z0-9]+) "." t:([a-zA-Z][a-zA-Z0-9]+) mod:Modifier? {
-		return [Token.ImportType, [lodash.flatten(p).join(''),lodash.flatten(t).join('')], mod||[]];
+	= p:([a-zA-Z][a-zA-Z0-9]+) "." t:([a-zA-Z][a-zA-Z0-9]+) {
+		return [Token.ImportType, [lodash.flatten(p).join(''),lodash.flatten(t).join('')]];
 	}
 
 Modifier

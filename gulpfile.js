@@ -8,7 +8,7 @@ const project = tsc.createProject('tsconfig.json', {
 });
 
 gulp.task('typescript', ['grammar'], () => {
-	var tsResult = gulp.src('src/*.ts')
+	var tsResult = gulp.src('src/**/*.ts')
 		.pipe(project());
 
 	return merge([ // Merge the two output streams, so this task is finished when the IO of both operations is done. 

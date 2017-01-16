@@ -2,7 +2,7 @@
 import * as parser from './models';
 import * as fs from 'mz/fs';
 import { JsonVisitor } from './buildins/json'
-import { TypescriptVisitor } from './ts'
+//import { TypescriptVisitor } from './ts'
 import { Preprocessor } from './visitor'
 
 async function run() {
@@ -11,7 +11,7 @@ async function run() {
 
     let out = parser.parse(data.toString());
 
-    let v = new TypescriptVisitor();
+    let v = new JsonVisitor();
 
 
     let p = new Preprocessor();
@@ -19,8 +19,8 @@ async function run() {
     let pp = await p.parse(out);
 
     let json = v.parse(pp)
-    //console.log(JSON.stringify(json, null, 2))
-    console.log(json)
+    console.log(JSON.stringify(json, null, 2))
+    //console.log(json)
     //for (let item of out) {
     //let o = v.visit(out);
 

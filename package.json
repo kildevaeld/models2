@@ -16,8 +16,11 @@
     "typescript": "^2.1.5"
   },
   "dependencies": {
+    "@types/commander": "^2.3.31",
     "@types/mz": "0.0.30",
+    "commander": "^2.9.0",
     "lodash": "^4.17.4",
     "mz": "^2.6.0"
-  }
+  },
+  "typings": "lib"
 }
