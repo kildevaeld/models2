@@ -1,21 +1,25 @@
+// comment
+package test; 
 
-package test;
 
 import './example2';
 
 import 'example3';
 
+// hello
+@annotation(2022)
 record Person {
+	// Hello
 	name: string;
 	description: string?;
 	age: int;
 	cool: [bool]?;
 }
 
+@doc("This is cool")
 record Model2 {
-	@annotation
 	@annotations
-	name: string;
+	name: string?;
 	description?: sub.Something;
 	teml?: pack.Lala;
 }

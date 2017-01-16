@@ -4,7 +4,7 @@ export enum Token {
 }
 
 export enum Modifier {
-    Optional, Repeated
+    Optional, Repeated, Annotation
 }
 
 export enum Type {

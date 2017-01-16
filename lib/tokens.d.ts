@@ -11,6 +11,7 @@ export declare enum Token {
 export declare enum Modifier {
     Optional = 0,
     Repeated = 1,
+    Annotation = 2,
 }
 export declare enum Type {
     String = 0,

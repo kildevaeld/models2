@@ -1,4 +1,4 @@
-import { Item, BaseVisitor } from '../visitor';
+import { Item, BaseVisitor, Description } from '../visitor';
 export declare class TypescriptVisitor extends BaseVisitor {
     imports: string[][];
     parse(item: Item): string;
@@ -11,3 +11,4 @@ export declare class TypescriptVisitor extends BaseVisitor {
     visitImportType(item: Item): any;
     visitModifier(item: Item): any;
 }
+export declare const Meta: Description;

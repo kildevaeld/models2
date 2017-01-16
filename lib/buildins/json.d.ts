@@ -1,5 +1,11 @@
-import { Item, BaseVisitor } from '../visitor';
-import { Description, GenerateOptions } from '../meta';
+import { Item, BaseVisitor, Description, GenerateOptions } from '../visitor';
+export interface JsonPackage {
+    package: string;
+    children: JsonRecord[];
+}
+export interface JsonRecord {
+    name: string;
+}
 export declare class JsonVisitor extends BaseVisitor {
     options: GenerateOptions;
     constructor(options: GenerateOptions);

@@ -12,44 +12,52 @@
  * Accepts expressions like "2 * (3 + 4)" and computes their value.
  */
 Expression
-  = _m p:Package _m i:(i:Import _m { return i;})* _m  b:Body? {
+  = __ p:Package __ i:(__ i:Import __ { return i;})* __  b:Body? {
 		return p.concat([i.concat(b)]);
   }
 
 
+
 Package
-	= "package" _m p:alpha+ _m semi _m { return [Token.Package, p.join('')]; }
+	=  __ "package" _+ p:alpha+ __ semi __   { return [Token.Package, p.join('')]; }
 
 Import
-	= "import" _m quote n:import_statement* quote _m  semi _m {
+	=  __ "import" _+ quote n:import_statement* quote __  semi __ {
 		return [Token.Import, n.join('')];
 	}
 
     
 Body 
-	= _m r:Records _m { return r }
+	= __ r:Records __ { return r }
 
 Records 
-	= _m recs:( _m r:Record _m { return r; })+ { return recs; } 
+	= __ recs:(  __ r:Record __ { return r; })+ { return recs; } 
 
 Record
-	= "record" _+ name:[a-zA-Z0-9]+ _m "{" _m body:RecordBody* _m "}" {
-    	return [Token.Record, name.join(''), body];
+	= a:(aa:Annotation __ { return aa;})* "record" _+ name:[a-zA-Z0-9]+ __ "{" __ body:RecordBody* __ "}" {
+		return [Token.Record, name.join(''), a.concat(body)];
     }
     
 RecordBody
-	= props:(_m p:Property _m { return p; }) {
+	= props:(__ p:Property __ { return p; }) {
     	return props
     }
 
-Property
+/*Property
 	= a:Annotation _m p:Property { return a.concat([p]) }
     / name:alpha+ o:'?'? _m ":" _m  type:PropertyType _m semi {
     	return [Token.Property, name.join(''), type]
     }
+*/
+
+Property
+	= a:(aa:Annotation __ { return aa;})* __ name:alpha+ o:'?'? __ ":" __  type:PropertyType _m semi {
+		type[2].push(...a)
+		return [Token.Property, name.join(''), type]
+    }
 
 PropertyType
-	= "[" _m t:Type _m "]" mod:Modifier? { 
+	= "[" __ t:Type __ "]" mod:Modifier? { 
 			t.push([[Token.Modifier, Modifier.Repeated]])
 			if (mod) t[2].push(mod)	
 			return t; 
@@ -91,7 +99,13 @@ Modifier
 	= "?" { return [Token.Modifier, Modifier.Optional]}
 
 Annotation
-	= "@" a:alpha+ { return [Token.Annotation, a.join('')];}
+	= "@" a:alpha+ "(" o:JSON_text ")" {
+		return [Token.Modifier, Modifier.Annotation, a.join(''), o]
+	}
+	/ "@" a:alpha+ { return [Token.Modifier, Modifier.Annotation, a.join('')];}
+
+
+
 
 import_statement 
 	= [a-zA-Z0-9_./]
@@ -122,3 +136,181 @@ _
 
 _m "whitespace"
   = [ \t\n\r]*
+
+
+
+
+JSON_text
+  = ws value:value ws { return value; }
+
+begin_array     = ws "[" ws
+begin_object    = ws "{" ws
+end_array       = ws "]" ws
+end_object      = ws "}" ws
+name_separator  = ws ":" ws
+value_separator = ws "," ws
+
+ws "whitespace" = [ \t\n\r]*
+
+// ----- 3. Values -----
+
+value
+  = false
+  / null
+  / true
+  / object
+  / array
+  / number
+  / string
+
+false = "false" { return false; }
+null  = "null"  { return null;  }
+true  = "true"  { return true;  }
+
+// ----- 4. Objects -----
+
+object
+  = begin_object
+    members:(
+      head:member
+      tail:(value_separator m:member { return m; })*
+      {
+        var result = {};
+
+        [head].concat(tail).forEach(function(element) {
+          result[element.name] = element.value;
+        });
+
+        return result;
+      }
+    )?
+    end_object
+    { return members !== null ? members: {}; }
+
+member
+  = name:string name_separator value:value {
+      return { name: name, value: value };
+    }
+
+// ----- 5. Arrays -----
+
+array
+  = begin_array
+    values:(
+      head:value
+      tail:(value_separator v:value { return v; })*
+      { return [head].concat(tail); }
+    )?
+    end_array
+    { return values !== null ? values : []; }
+
+// ----- 6. Numbers -----
+
+number "number"
+  = minus? int frac? exp? { return parseFloat(text()); }
+
+decimal_point
+  = "."
+
+digit1_9
+  = [1-9]
+
+e
+  = [eE]
+
+exp
+  = e (minus / plus)? DIGIT+
+
+frac
+  = decimal_point DIGIT+
+
+int
+  = zero / (digit1_9 DIGIT*)
+
+minus
+  = "-"
+
+plus
+  = "+"
+
+zero
+  = "0"
+
+// ----- 7. Strings -----
+
+string "string"
+  = quotation_mark chars:char* quotation_mark { return chars.join(""); }
+
+char
+  = unescaped
+  / escape
+    sequence:(
+        '"'
+      / "\\"
+      / "/"
+      / "b" { return "\b"; }
+      / "f" { return "\f"; }
+      / "n" { return "\n"; }
+      / "r" { return "\r"; }
+      / "t" { return "\t"; }
+      / "u" digits:$(HEXDIG HEXDIG HEXDIG HEXDIG) {
+          return String.fromCharCode(parseInt(digits, 16));
+        }
+    )
+    { return sequence; }
+
+escape
+  = "\\"
+
+quotation_mark
+  = '"'
+
+unescaped
+  = [^\0-\x1F\x22\x5C]
+
+// ----- Core ABNF Rules -----
+
+// See RFC 4234, Appendix B (http://tools.ietf.org/html/rfc4234).
+DIGIT  = [0-9]
+HEXDIG = [0-9a-f]i
+
+__
+  = (WhiteSpace / LineTerminatorSequence / Comment)*
+
+SourceCharacter
+  = .
+
+Zs = [\u0020\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]
+
+
+WhiteSpace "whitespace"
+  = "\t"
+  / "\v"
+  / "\f"
+  / " "
+  / "\u00A0"
+  / "\uFEFF"
+  / Zs
+
+LineTerminator
+  = [\n\r\u2028\u2029]
+
+LineTerminatorSequence "end of line"
+  = "\n"
+  / "\r\n"
+  / "\r"
+  / "\u2028"
+  / "\u2029"
+
+Comment "comment"
+  = MultiLineComment
+  / SingleLineComment
+
+MultiLineComment
+  = "/*" (!"*/" SourceCharacter)* "*/"
+
+MultiLineCommentNoLineTerminator
+  = "/*" (!("*/" / LineTerminator) SourceCharacter)* "*/"
+
+SingleLineComment
+  = "//" (!LineTerminator SourceCharacter)*

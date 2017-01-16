@@ -5,8 +5,24 @@ import * as _ from 'lodash';
 import { Token } from './tokens';
 import * as Parser from './models';
 
-export type Item = [Token, string, any];
+export type Item = [Token, any, any];
 export type Package = [Token, string, Item[]];
+
+export interface GenerateOptions {
+    split: boolean;
+    file: string;
+}
+
+export interface Result {
+    name: string;
+    data: Buffer;
+}
+
+export interface Description {
+    name: string;
+    extname: string;
+    run(item: Item, options: GenerateOptions): Promise<Result[]>
+}
 
 export class ValidationError extends Error {
     constructor(public message: string, public errors: any) {
@@ -31,6 +47,8 @@ export interface IVisitor {
 }
 
 export abstract class BaseVisitor implements IVisitor {
+
+    constructor(public options?: GenerateOptions) { }
 
     public parse(item: Item): any {
         return this.visit(item);

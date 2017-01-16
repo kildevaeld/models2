@@ -1,6 +1,6 @@
 
 import * as Path from 'path'
-import { Item, BaseVisitor } from '../visitor';
+import { Item, BaseVisitor, Description, GenerateOptions, Result } from '../visitor';
 import { Type, Modifier } from '../tokens';
 
 export class TypescriptVisitor extends BaseVisitor {
@@ -20,15 +20,16 @@ export class TypescriptVisitor extends BaseVisitor {
 
 
     visitPackage(item: Item): any {
-        return `// ${item[1]}${this.visit(item[2]).join('\n\n')}\n`;
+        return `// ${item[1]}\n${this.visit(item[2]).join('\n\n')}\n`;
     }
     visitRecord(item: Item): any {
-        return `interface ${item[1]} {\n${this.visit(item[2]).join('\n')}\n}`;
+        return `export interface ${item[1]} {\n${this.visit(item[2]).join('\n')}\n}`;
     }
     visitProperty(item: Item): any {
         let t = item[2];
         let type = this.visit(t);
         let mod = this.visit(t[2]);
+
         return `  ${item[1]}` + (mod == Modifier.Optional ? '?' : '') + ": " + type + ';'
     }
     visitAnnotation(item: Item): any {
@@ -55,4 +56,18 @@ export class TypescriptVisitor extends BaseVisitor {
         return item[1];
     }
 
+}
+
+export const Meta: Description = {
+    name: "Typescript",
+    extname: ".ts",
+    run: (item: Item, options: GenerateOptions): Promise<Result[]> => {
+        let visitor = new TypescriptVisitor(options);
+        let json = visitor.parse(item);
+
+        return Promise.resolve([{
+            data: new Buffer(json),
+            name: options.file
+        }]);
+    }
 }

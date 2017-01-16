@@ -1,6 +1,6 @@
 
-import { Description, Result } from './meta';
-import { Preprocessor } from './visitor'
+
+import { Preprocessor, Description, Result } from './visitor'
 import * as Parser from './models';
 
 import * as Path from 'path';

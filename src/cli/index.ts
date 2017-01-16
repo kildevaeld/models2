@@ -20,7 +20,7 @@ function generate(generator: Generator, cmd: program.ICommand, files: string[]) 
 
     generator.generate(template, { output: output }, files)
         .then(() => console.log('Done'))
-        .catch(e => console.error(e.message));
+        .catch(e => console.error(e));
 
 }
 

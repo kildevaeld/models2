@@ -1,12 +1,40 @@
 
-import { Item, BaseVisitor } from '../visitor';
-import { Type, Modifier } from '../tokens'
-import { Description, Result, GenerateOptions } from '../meta'
+import { Item, BaseVisitor, Description, Result, GenerateOptions } from '../visitor';
+import { Type, Modifier, Token } from '../tokens'
+
+
+export interface JsonPackage {
+    package: string;
+    children: JsonRecord[];
+}
+
+export interface JsonRecord {
+    name: string;
+    properties: JsonProperty[]
+}
+
+export interface JsonProperty {
+    name: string;
+    type: string;
+    modifies: JsonModifier[]
+    annotations: JsonAnnotation[]
+}
+
+type JsonModifier = "Optional" | "Repeated";
+
+export interface JsonAnnotation {
+    name: string;
+    value: string | boolean | number | Object | null;
+}
 
 export class JsonVisitor extends BaseVisitor {
 
     constructor(public options: GenerateOptions) {
         super();
+    }
+
+    parse(item: Item): JsonPackage {
+        return super.parse(item);
     }
 
     visitPackage(item: Item): any {
@@ -16,16 +44,20 @@ export class JsonVisitor extends BaseVisitor {
         }
     }
     visitRecord(item: Item): any {
+
         return {
             name: item[1],
-            properties: this.visit(item[2])
+            properties: this.visit(item[2].filter(m => m[0] === Token.Property)),
+            annotations: this.visit(item[2].filter(m => m[0] === Token.Modifier))
         }
     }
     visitProperty(item: Item): any {
+
         return {
             type: this.visit(item[2]),
             name: item[1],
-            modifiers: this.visit(item[2][2])
+            modifiers: this.visit(item[2][2].filter(m => m[1] !== Modifier.Annotation)),
+            annotations: this.visit(item[2][2].filter(m => m[1] === Modifier.Annotation))
         }
     }
     visitAnnotation(item: Item): any {
@@ -44,6 +76,12 @@ export class JsonVisitor extends BaseVisitor {
     }
 
     visitModifier(item: Item): any {
+        if (item[1] == Modifier.Annotation) {
+            return {
+                name: item[2],
+                value: item[3]
+            }
+        }
         return Modifier[item[1]];
     }
 
