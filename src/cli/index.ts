@@ -37,15 +37,22 @@ export async function run() {
         listTypes(generator);
     })
 
-    let cmd = program
+    let genCmd = program
         .command('gen')
         .option("-t, --template <template>", 'use templates')
         .option("-o, --output <path>", "out", ".")
         .arguments('<files...>').action((files) => {
-            generate(generator, cmd, files);
+            generate(generator, genCmd, files);
         });
 
 
+    program.command('ast <files...>')
+        .action((files) => {
+            generator.ast(files)
+                .then(ast => {
+                    console.log(JSON.stringify(ast, null, 2))
+                })
+        })
 
     program.parse(process.argv);
 

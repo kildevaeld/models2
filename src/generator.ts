@@ -39,6 +39,17 @@ export class Generator {
 
     }
 
+    async ast(files: string[]) {
+        let data = await Promise.all(files.map(file => fs.readFile(file)));
+
+
+        let m = data.map(file => {
+            let ast = Parser.parse(file.toString());
+            return this.preprocessor.parse(ast);
+        })
+        return await Promise.all(m);
+    }
+
     async generate(generator: string, options: Options, files: string[]) {
         let desc = this.buildins.find(m => m.name == generator);
         if (!desc) throw new Error('generator not found');

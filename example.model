@@ -14,6 +14,7 @@ record Person {
 
 record Model2 {
 	@annotation
+	@annotations
 	name: string;
 	description?: sub.Something;
 	teml?: pack.Lala;
