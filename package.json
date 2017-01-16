@@ -1,0 +1,23 @@
+{
+  "name": "models",
+  "version": "1.0.0",
+  "description": "",
+  "main": "gulpfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-peg": "^0.2.0",
+    "gulp-typescript": "^3.1.4",
+    "merge2": "^1.0.3",
+    "typescript": "^2.1.5"
+  },
+  "dependencies": {
+    "@types/mz": "0.0.30",
+    "lodash": "^4.17.4",
+    "mz": "^2.6.0"
+  }
+}

@@ -1,0 +1,15 @@
+
+package test;
+
+import 'example2';
+
+record Model {
+	name: string;
+	description: string?;
+}
+
+record Model2 {
+	@annotation
+	name: string;
+	description?: example.Somthing;
+}
