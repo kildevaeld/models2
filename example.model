@@ -1,13 +1,11 @@
 // comment
 package test; 
 
-
 import './example2';
-
 import 'example3';
 
 // hello
-@annotation(2022)
+@class
 record Person {
 	// Hello
 	name: string;

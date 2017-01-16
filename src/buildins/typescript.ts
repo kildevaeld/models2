@@ -1,7 +1,7 @@
 
 import * as Path from 'path'
 import { Item, BaseVisitor, Description, GenerateOptions, Result } from '../visitor';
-import { Type, Modifier } from '../tokens';
+import { Type, Modifier, Token } from '../tokens';
 
 export class TypescriptVisitor extends BaseVisitor {
     imports: string[][] = [];
@@ -18,19 +18,23 @@ export class TypescriptVisitor extends BaseVisitor {
         this.imports.push([item[1][0], Path.basename(item[1][1], '.model')]);
     }
 
-
     visitPackage(item: Item): any {
         return `// ${item[1]}\n${this.visit(item[2]).join('\n\n')}\n`;
     }
     visitRecord(item: Item): any {
-        return `export interface ${item[1]} {\n${this.visit(item[2]).join('\n')}\n}`;
+        let props = this.visit(item[2].filter(m => m[0] == Token.Property))
+            .join('\n');
+
+        let a = this.visit(item[2].filter(m => m[0] == Token.Modifier && m[1] == Modifier.Annotation))
+        let c = !!a.find(a => a.name == 'class')
+        return `export ${c ? 'class' : 'interface'} ${item[1]} {\n${props}\n}`;
     }
     visitProperty(item: Item): any {
-        let t = item[2];
-        let type = this.visit(t);
-        let mod = this.visit(t[2]);
-
-        return `  ${item[1]}` + (mod == Modifier.Optional ? '?' : '') + ": " + type + ';'
+        let type = this.visit(item[2]);
+        let modifiers = this.visit(item[2][2]);
+        let isOptional = modifiers.find(m => m === Modifier.Optional) === Modifier.Optional
+        let isRepeated = modifiers.find(m => m === Modifier.Repeated) === Modifier.Repeated
+        return `  ${item[1]}` + (isOptional ? '?' : '') + ": " + type + (isRepeated ? '[]' : '') + ';'
     }
     visitAnnotation(item: Item): any {
         return this.visit(item[2]);
@@ -53,6 +57,12 @@ export class TypescriptVisitor extends BaseVisitor {
 
 
     visitModifier(item: Item): any {
+        if (item[1] == Modifier.Annotation) {
+            return {
+                name: item[2],
+                value: item[3]
+            }
+        }
         return item[1];
     }
 

@@ -5,12 +5,8 @@
 	const Type = tokens.Type;
 	const lodash = require('lodash');
 }
-/*
- * Simple Arithmetics Grammar
- * ==========================
- *
- * Accepts expressions like "2 * (3 + 4)" and computes their value.
- */
+
+
 Expression
   = __ p:Package __ i:(__ i:Import __ { return i;})* __  b:Body? {
 		return p.concat([i.concat(b)]);
