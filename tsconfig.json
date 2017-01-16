@@ -4,14 +4,13 @@
         "target": "es6",
         "noImplicitAny": false,
         "sourceMap": false,
-        "allowJs": true,
+        "allowJs": false,
         "outDir": "lib"
     },
     "files": [
         "src/index.ts",
-        "src/models.js",
         "src/visitor.ts",
-        "src/json.ts",
-        "src/ts.ts"
+        "src/buildins/json.ts",
+        "src/buildins/ts.ts"
     ]
 }

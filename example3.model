@@ -1,0 +1,5 @@
+package pack;
+
+record Lala {
+    name:string;
+}

@@ -1,15 +1,20 @@
 
 package test;
 
-import 'example2';
+import './example2';
 
-record Model {
+import 'example3';
+
+record Person {
 	name: string;
 	description: string?;
+	age: int;
+	cool: bool;
 }
 
 record Model2 {
 	@annotation
 	name: string;
-	description?: example.Somthing;
+	description?: sub.Something;
+	teml?: pack.Lala;
 }

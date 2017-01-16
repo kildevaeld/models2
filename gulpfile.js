@@ -30,5 +30,9 @@ gulp.task('grammar', () => {
 	])
 });
 
+gulp.task('watch', () => {
+	gulp.watch(['src/**/*.ts', 'grammar/*.pegjs'], ['typescript']);
+})
+
 
 gulp.task('default', ['typescript'])

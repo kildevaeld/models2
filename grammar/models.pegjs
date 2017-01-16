@@ -21,9 +21,10 @@ Package
 	= "package" _m p:alpha+ _m semi _m { return [Token.Package, p.join('')]; }
 
 Import
-	= "import" _m quote n:alphanum* quote _m  semi _m {
+	= "import" _m quote n:import_statement* quote _m  semi _m {
 		return [Token.Import, n.join('')];
 	}
+
     
 Body 
 	= _m r:Records _m { return r }
@@ -57,7 +58,7 @@ Type
 BuildInType
 	= "string" { return Type.String; }
 	/ "date" { return Type.Date; }
-	/ "boolean" { return Type.Boolean; }
+	/ "bool" { return Type.Boolean; }
 	/ "int" { return Type.Int; }
 	/ "uint" { return Type.Uint; }
 	/ "int8" { return Type.Int8; }
@@ -82,6 +83,9 @@ Modifier
 Annotation
 	= "@" a:alpha+ { return [Token.Annotation, a.join('')];}
 
+import_statement 
+	= [a-zA-Z0-9_./]
+
 quote
 	= single_quote
 	/ double_quote
@@ -102,6 +106,7 @@ num
 
 alphanum 
 	= [a-zA-Z0-9_]
+
 _
 	= [ \t\n\r]
 
