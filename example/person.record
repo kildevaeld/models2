@@ -1,0 +1,25 @@
+package models;
+
+import "address";
+@doc("Person is the head of state")
+@gotags(["json","msgpack"])
+record Person {
+    @constant
+    id: string;
+    name: string;
+    @swift("desc")
+    description: string;
+    @gotags({"json":"ADRRESS"})
+    address: models.Address;
+}
+
+@realm
+record Lars {
+    @constant
+    id: string;
+    name: string;
+    @swift("desc")
+    description: string;
+    @gopointer
+    address: models.Address;
+}

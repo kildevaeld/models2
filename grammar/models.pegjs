@@ -97,7 +97,7 @@ Modifier
 
 Annotation
 	= "@" a:alpha+ "(" o:JSON_text ")" {
-		return [Token.Modifier, Modifier.Annotation, a.join('')]
+		return [Token.Modifier, Modifier.Annotation, a.join(''), o]
 	}
 	/ "@" a:alpha+ { return [Token.Modifier, Modifier.Annotation, a.join('')];}
 

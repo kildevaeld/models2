@@ -1,13 +1,9 @@
 
 import * as Path from 'path'
-import { Item, BaseVisitor, Description, GenerateOptions, Result } from '../visitor';
+import { Item, BaseVisitor, Description, VisitorOptions, Result } from '../visitor';
 import { Type, Modifier, Token } from '../tokens';
 
-function ucFirst(name: string) {
-    return name[0].toUpperCase() + name.substr(1)
-}
-
-export class GolangVisitor extends BaseVisitor {
+export class TypescriptVisitor extends BaseVisitor {
     imports: string[][] = [];
 
     parse(item: Item) {
@@ -19,11 +15,11 @@ export class GolangVisitor extends BaseVisitor {
     }
 
     visitImport(item: Item): any {
-        this.imports.push([item[1][0], Path.basename(item[1][1], '.model')]);
+        this.imports.push([item[1][0], Path.basename(item[1][1], '.record')]);
     }
 
     visitPackage(item: Item): any {
-        return `package ${item[1]}\n${this.visit(item[2]).join('\n\n')}\n`;
+        return `// ${item[1]}\n${this.visit(item[2]).join('\n\n')}\n`;
     }
     visitRecord(item: Item): any {
         let props = this.visit(item[2].filter(m => m[0] == Token.Property))
@@ -31,14 +27,14 @@ export class GolangVisitor extends BaseVisitor {
 
         let a = this.visit(item[2].filter(m => m[0] == Token.Modifier && m[1] == Modifier.Annotation))
         let c = !!a.find(a => a.name == 'class')
-        return `type ${ucFirst(item[1])} struct {\n${props}\n}`;
+        return `export ${c ? 'class' : 'interface'} ${item[1]} {\n${props}\n}`;
     }
     visitProperty(item: Item): any {
         let type = this.visit(item[2]);
         let modifiers = this.visit(item[2][2]);
         let isOptional = modifiers.find(m => m === Modifier.Optional) === Modifier.Optional
         let isRepeated = modifiers.find(m => m === Modifier.Repeated) === Modifier.Repeated
-        return `  ${ucFirst(item[1])} ` + (isRepeated ? '[]' : '') + type
+        return `  ${item[1]}` + (isOptional ? '?' : '') + ": " + type + (isRepeated ? '[]' : '') + ';'
     }
     visitAnnotation(item: Item): any {
         return this.visit(item[2]);
@@ -47,13 +43,10 @@ export class GolangVisitor extends BaseVisitor {
     visitBuildinType(item: Item): any {
         let type = <Type>item[1]
         switch (type) {
-            case Type.Boolean: return "bool";
+            case Type.Boolean: return "boolean";
             case Type.String: return "string";
-            case Type.Date: return "time.Time";
-            case Type.Bytes: return "[]byte";
-            default:
-                return Type[type].toLowerCase();
-            
+            case Type.Date: return "Date";
+            default: return "number";
         }
 
     }
@@ -76,10 +69,10 @@ export class GolangVisitor extends BaseVisitor {
 }
 
 export const Meta: Description = {
-    name: "Golang",
-    extname: ".go",
-    run: (item: Item, options: GenerateOptions): Promise<Result[]> => {
-        let visitor = new GolangVisitor(options);
+    name: "Typescript",
+    extname: ".ts",
+    run: (item: Item, options: VisitorOptions): Promise<Result[]> => {
+        let visitor = new TypescriptVisitor(options);
         let json = visitor.parse(item);
 
         return Promise.resolve([{

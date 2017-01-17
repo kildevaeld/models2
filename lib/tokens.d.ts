@@ -2,11 +2,10 @@ export declare enum Token {
     Package = 0,
     Record = 1,
     Property = 2,
-    Annotation = 3,
-    Import = 4,
-    ImportType = 5,
-    BuildinType = 6,
-    Modifier = 7,
+    Import = 3,
+    ImportType = 4,
+    BuildinType = 5,
+    Modifier = 6,
 }
 export declare enum Modifier {
     Optional = 0,

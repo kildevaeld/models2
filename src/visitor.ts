@@ -8,7 +8,7 @@ import * as Parser from './models';
 export type Item = [Token, any, any];
 export type Package = [Token, string, Item[]];
 
-export interface GenerateOptions {
+export interface VisitorOptions {
     split: boolean;
     file: string;
 }
@@ -18,10 +18,22 @@ export interface Result {
     data: Buffer;
 }
 
+export interface AnnotationDescriptions {
+    records?: {[key:string]: AnnotationDescription};
+    properties?: {[key:string]: AnnotationDescription};
+}
+
+export interface AnnotationDescription {
+    arguments: string;
+    description?: string;
+}
+
 export interface Description {
     name: string;
     extname: string;
-    run(item: Item, options: GenerateOptions): Promise<Result[]>
+    description?: string;
+    annotations?: AnnotationDescriptions;
+    run(item: Item, options: VisitorOptions): Promise<Result[]>
 }
 
 export class ValidationError extends Error {
@@ -42,13 +54,13 @@ export interface IVisitor {
     visitProperty(item: Item): any;
     visitBuildinType(item: Item): any;
     visitImportType(item: Item): any;
-    visitAnnotation(item: Item): any;
+    //visitAnnotation(item: Item): any;
     visitModifier(item: Item): any;
 }
 
 export abstract class BaseVisitor implements IVisitor {
 
-    constructor(public options?: GenerateOptions) { }
+    constructor(public options?: VisitorOptions) { }
 
     public parse(item: Item): any {
         return this.visit(item);
@@ -60,7 +72,7 @@ export abstract class BaseVisitor implements IVisitor {
             case Token.Package: return this.visitPackage(item);
             case Token.Record: return this.visitRecord(item);
             case Token.Property: return this.visitProperty(item);
-            case Token.Annotation: return this.visitAnnotation(item);
+            //case Token.Annotation: return this.visitAnnotation(item);
             case Token.Import: return this.visitImport(item);
             case Token.BuildinType: return this.visitBuildinType(item);
             case Token.ImportType: return this.visitImportType(item);
@@ -78,7 +90,7 @@ export abstract class BaseVisitor implements IVisitor {
     abstract visitPackage(item: Item): any;
     abstract visitRecord(item: Item): any;
     abstract visitProperty(item: Item): any;
-    abstract visitAnnotation(item: Item): any;
+    //abstract visitAnnotation(item: Item): any;
     abstract visitBuildinType(item: Item): any;
     abstract visitImportType(item: Item): any;
     abstract visitModifier(item: Item): any;
@@ -113,9 +125,9 @@ export class Preprocessor {
 
     private async import(item: Item) {
 
-        let path = Path.resolve(item[1] + ".model");
+        let path = Path.resolve(item[1] + ".record");
 
-        let data = await fs.readFile(item[1] + ".model");
+        let data = await fs.readFile(item[1] + ".record");
         let ast = Parser.parse(data.toString());
 
         let out = await this.parse(ast);

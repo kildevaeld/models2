@@ -2,7 +2,7 @@
 
 import { Preprocessor, Description, Result } from './visitor'
 import * as Parser from './models';
-import {EventEmitter} from 'events';
+import { EventEmitter } from 'events';
 
 import * as Path from 'path';
 import * as fs from 'mz/fs';
@@ -23,7 +23,7 @@ export class Generator extends EventEmitter {
     preprocessor = new Preprocessor();
     async loadBuildins() {
 
-        let path = Path.join(__dirname, "buildins");
+        let path = Path.join(__dirname, "templates");
 
         let files = await fs.readdir(path)
 
@@ -51,6 +51,14 @@ export class Generator extends EventEmitter {
         return await Promise.all(m);
     }
 
+    private async ensureOutputPath(path:string) {
+        try {
+            await fs.stat(path)
+        } catch (e) {
+            await fs.mkdir(path);
+        }
+    }
+
     async generate(generator: string, options: Options, files: string[]) {
         let desc = this.buildins.find(m => m.name == generator);
         if (!desc) throw new Error('generator not found');
@@ -67,22 +75,23 @@ export class Generator extends EventEmitter {
             let ast = Parser.parse(entry.data.toString());
             ast = await this.preprocessor.parse(ast);
 
-            let result = await desc.run(ast, { split: false, file: entry.name.replace('.model', desc.extname) });
+            let result = await desc.run(ast, { split: false, file: entry.name.replace('.record', desc.extname) });
 
             out.push(...result)
             this.emit("parse:file", entry.name);
         }
 
-        try {
-            await fs.stat(options.output)
-        } catch (e) {
-            await fs.mkdir(options.output);
-        }
+        if (options.output) await this.ensureOutputPath(options.output);
 
         for (let entry of out) {
-            let file = Path.join(options.output, entry.name);
-            await fs.writeFile(file, entry.data);
-            this.emit('write:file', file);
+            if (options.output) {
+                let file = Path.join(options.output, entry.name);
+                await fs.writeFile(file, entry.data);
+                this.emit('write:file', file);
+            } else {
+                console.log(entry.data.toString());
+             }
+
         }
 
     }

@@ -1,5 +1,5 @@
 
-import { Item, BaseVisitor, Description, Result, GenerateOptions } from '../visitor';
+import { Item, BaseVisitor, Description, Result, VisitorOptions } from '../visitor';
 import { Type, Modifier, Token } from '../tokens'
 
 
@@ -22,16 +22,20 @@ export interface JsonProperty {
 
 type JsonModifier = "Optional" | "Repeated";
 
+
 export interface JsonAnnotation {
     name: string;
     value: string | boolean | number | Object | null;
 }
 
-export class JsonVisitor extends BaseVisitor {
+export interface JSONVisitorOptions extends VisitorOptions {
+    stringify: boolean;
+}
 
-    constructor(public options: GenerateOptions) {
-        super();
-    }
+
+export class JsonVisitor extends BaseVisitor {
+    options: JSONVisitorOptions
+    
 
     parse(item: Item): JsonPackage {
         return super.parse(item);
@@ -90,7 +94,7 @@ export class JsonVisitor extends BaseVisitor {
 export const Meta: Description = {
     name: "Json",
     extname: ".json",
-    run: (item: Item, options: GenerateOptions): Promise<Result[]> => {
+    run: (item: Item, options: JSONVisitorOptions): Promise<Result[]> => {
         let visitor = new JsonVisitor(options);
         let json = visitor.parse(item);
 

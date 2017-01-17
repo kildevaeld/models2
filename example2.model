@@ -1,8 +1,0 @@
-package sub;
-
-record Something {
-    id: int;
-    name: string;
-    description: string;
-
-}

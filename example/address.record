@@ -1,0 +1,10 @@
+package models;
+
+@doc("This is the address")
+record Address {
+    @doc("This should stil be here")
+    street: string;
+    city: string;
+    isoCode: string;
+    createdAt: date;
+}

@@ -8,10 +8,11 @@ const pkg = require('../../package.json');
 function listTypes(generator: Generator) {
     let gens = generator.buildins;
 
-    console.log('Available generators: ')
+    console.log(chalk.bold('Available generators:'))
     for (let g of gens) {
-        console.log(g.name)
+        console.log(g.name);
     }
+    console.log('');
 }
 
 function generate(generator: Generator, cmd: program.ICommand, files: string[]) {
@@ -47,7 +48,7 @@ export async function run() {
     let genCmd = program
         .command('gen')
         .option("-t, --template <template>", 'use templates')
-        .option("-o, --output <path>", "out", ".")
+        .option("-o, --output <path>", "out")
         .arguments('<files...>').action((files) => {
             generate(generator, genCmd, files);
         });
@@ -63,5 +64,5 @@ export async function run() {
 
     program.parse(process.argv);
 
-
+    if (!program.args.length) program.help();
 }

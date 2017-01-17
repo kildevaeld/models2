@@ -2,7 +2,7 @@
 import { Token } from './tokens';
 export declare type Item = [Token, any, any];
 export declare type Package = [Token, string, Item[]];
-export interface GenerateOptions {
+export interface VisitorOptions {
     split: boolean;
     file: string;
 }
@@ -10,10 +10,24 @@ export interface Result {
     name: string;
     data: Buffer;
 }
+export interface AnnotationDescriptions {
+    records?: {
+        [key: string]: AnnotationDescription;
+    };
+    properties?: {
+        [key: string]: AnnotationDescription;
+    };
+}
+export interface AnnotationDescription {
+    arguments: string;
+    description?: string;
+}
 export interface Description {
     name: string;
     extname: string;
-    run(item: Item, options: GenerateOptions): Promise<Result[]>;
+    description?: string;
+    annotations?: AnnotationDescriptions;
+    run(item: Item, options: VisitorOptions): Promise<Result[]>;
 }
 export declare class ValidationError extends Error {
     message: string;
@@ -28,19 +42,17 @@ export interface IVisitor {
     visitProperty(item: Item): any;
     visitBuildinType(item: Item): any;
     visitImportType(item: Item): any;
-    visitAnnotation(item: Item): any;
     visitModifier(item: Item): any;
 }
 export declare abstract class BaseVisitor implements IVisitor {
-    options: GenerateOptions;
-    constructor(options?: GenerateOptions);
+    options: VisitorOptions;
+    constructor(options?: VisitorOptions);
     parse(item: Item): any;
     visit(item: Item): any;
     abstract visitImport(item: Item): any;
     abstract visitPackage(item: Item): any;
     abstract visitRecord(item: Item): any;
     abstract visitProperty(item: Item): any;
-    abstract visitAnnotation(item: Item): any;
     abstract visitBuildinType(item: Item): any;
     abstract visitImportType(item: Item): any;
     abstract visitModifier(item: Item): any;

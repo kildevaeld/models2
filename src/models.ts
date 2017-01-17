@@ -152,7 +152,7 @@ module.exports = (function() {
         peg$c92 = ")",
         peg$c93 = { type: "literal", value: ")", description: "\")\"" },
         peg$c94 = function(a, o) {
-        		return [Token.Modifier, Modifier.Annotation, a.join('')]
+        		return [Token.Modifier, Modifier.Annotation, a.join(''), o]
         	},
         peg$c95 = function(a) { return [Token.Modifier, Modifier.Annotation, a.join('')];},
         peg$c96 = /^[a-zA-Z0-9_.\/]/,
