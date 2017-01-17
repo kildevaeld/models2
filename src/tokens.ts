@@ -8,5 +8,7 @@ export enum Modifier {
 }
 
 export enum Type {
-    String, Date, Int8, Int16, Int32, Int64, Double, Float, Uint8, Uint16, Uint32, Uint64, Boolean, Int, Uint
+    String, Date, 
+    Int8, Int16, Int32, Int64, Double, Float, Uint8, Uint16, Uint32, Uint64, 
+    Boolean, Int, Uint, Bytes
 }

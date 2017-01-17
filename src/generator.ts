@@ -2,6 +2,7 @@
 
 import { Preprocessor, Description, Result } from './visitor'
 import * as Parser from './models';
+import {EventEmitter} from 'events';
 
 import * as Path from 'path';
 import * as fs from 'mz/fs';
@@ -16,7 +17,7 @@ interface Options {
     output: string
 }
 
-export class Generator {
+export class Generator extends EventEmitter {
 
     buildins: Description[] = [];
     preprocessor = new Preprocessor();
@@ -69,7 +70,7 @@ export class Generator {
             let result = await desc.run(ast, { split: false, file: entry.name.replace('.model', desc.extname) });
 
             out.push(...result)
-
+            this.emit("parse:file", entry.name);
         }
 
         try {
@@ -81,6 +82,7 @@ export class Generator {
         for (let entry of out) {
             let file = Path.join(options.output, entry.name);
             await fs.writeFile(file, entry.data);
+            this.emit('write:file', file);
         }
 
     }

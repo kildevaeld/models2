@@ -29,4 +29,5 @@ export declare enum Type {
     Boolean = 12,
     Int = 13,
     Uint = 14,
+    Bytes = 15,
 }

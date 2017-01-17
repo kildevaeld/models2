@@ -85,6 +85,7 @@ BuildInType
 	/ "uint64" { return Type.Uint64; }
 	/ "double" { return Type.Double; }
 	/ "float" { return Type.Float; }
+  / "bytes" { return Type.Bytes; }
 
 ImportType
 	= p:([a-zA-Z][a-zA-Z0-9]+) "." t:([a-zA-Z][a-zA-Z0-9]+) {
@@ -96,7 +97,7 @@ Modifier
 
 Annotation
 	= "@" a:alpha+ "(" o:JSON_text ")" {
-		return [Token.Modifier, Modifier.Annotation, a.join(''), o]
+		return [Token.Modifier, Modifier.Annotation, a.join('')]
 	}
 	/ "@" a:alpha+ { return [Token.Modifier, Modifier.Annotation, a.join('')];}
 

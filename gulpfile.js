@@ -1,7 +1,8 @@
 const gulp = require('gulp'),
 	tsc = require('gulp-typescript'),
 	peg = require('gulp-peg'),
-	merge = require('merge2');
+	merge = require('merge2'),
+	rename = require('gulp-rename');
 
 const project = tsc.createProject('tsconfig.json', {
 	declaration: true
@@ -22,10 +23,11 @@ gulp.task('grammar', () => {
 	return merge([
 		gulp.src('./grammar/models.pegjs')
 		.pipe(peg())
-		.pipe(gulp.dest('src')),
+		.pipe(rename("models.ts"))
+		.pipe(gulp.dest('src'))/*,
 		gulp.src('./grammar/models.pegjs')
 		.pipe(peg())
-		.pipe(gulp.dest('lib'))
+		.pipe(gulp.dest('lib'))*/
 
 	])
 });

@@ -1,6 +1,7 @@
 
 import * as program from 'commander';
 import { Generator } from '../generator'
+import * as chalk from 'chalk';
 const pkg = require('../../package.json');
 
 
@@ -18,8 +19,14 @@ function generate(generator: Generator, cmd: program.ICommand, files: string[]) 
     let template = cmd['template'];
     let output = cmd['output']
 
+    console.log(chalk.bold("Using template:"), chalk.cyan(template))
+
+    generator.on('write:file', (file) => {
+        console.log('  %s %s', 'create', chalk.green(file))
+    })
+
     generator.generate(template, { output: output }, files)
-        .then(() => console.log('Done'))
+        .then(() => console.log('\nYour files has now been created!\n'))
         .catch(e => console.error(e));
 
 }
