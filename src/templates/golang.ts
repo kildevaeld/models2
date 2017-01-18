@@ -1,14 +1,14 @@
 
 import * as Path from 'path'
 import { BaseVisitor, Description, VisitorOptions, Result } from '../visitor';
-import { Type, Modifier, Token } from '../tokens';
+import { Type } from '../tokens';
 import { isString, isStringArray } from '../utils';
 import {
-    Expression, PackageExpression, ImportExpression, RecordExpression,
+    Expression, PackageExpression, RecordExpression,
     AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression,
     RepeatedTypeExpression, OptionalTypeExpression, ExpressionPosition
 } from '../expressions';
-
+import * as _ from 'lodash';
 
 export class GolangError extends Error {
     constructor(public message: string, public location: ExpressionPosition) {
@@ -40,6 +40,32 @@ function arrayToSet(...arrays: string[]) {
     return out;
 }
 
+function toString(input) {
+
+    let result: Result[] = []
+
+    for (let o of input) {
+        let i = [];
+        for (let ip of o.imports) {
+            i.push(`  "${ip}"`);
+        }
+
+        let builder = "package " + o.package + '\n';
+
+        if (i.length) {
+            builder += `\nimport (\n${i.join('\n')}\n)\n`;
+        }
+
+
+        result.push({
+            name: o.name,
+            data: new Buffer(builder + "\n" + o.body)
+        })
+    }
+
+    return result;
+}
+
 const Indention = '  ';
 
 
@@ -48,12 +74,19 @@ export class GolangVisitor extends BaseVisitor {
     package: string;
     gotags: string[]
 
-    getAnnotations(exp: Expression[]): AnnotationExpression[] {
-        let annotations: AnnotationExpression[] = [];
-        for (let annotation of exp) {
-            annotations.push(this.visit(annotation));
+
+    parse(expression: PackageExpression): Result[] {
+        let out = this.visit(expression);
+        if (!this.options.split) {
+            out = [{
+                imports: arrayToSet(...out.map(m => m.imports)),
+                body: out.map(m => m.body).join('\n\n'),
+                name: this.options.file,
+                package: this.package
+            }]
         }
-        return annotations;
+
+        return toString(out)
     }
 
     generateTags(name: string, annotations: AnnotationExpression[]) {
@@ -63,7 +96,7 @@ export class GolangVisitor extends BaseVisitor {
             gotags = gotagsAnnotation.args
         }
 
-        let tagStr = "";
+        let tagStr = '';
         if (gotags) {
             if (isStringArray(gotags)) {
                 gotags = gotags.map(m => `${m}:"${name.toLowerCase()},omitempty"`);
@@ -75,13 +108,14 @@ export class GolangVisitor extends BaseVisitor {
                 gotags = tmp;
             }
 
-            tagStr = "`" + gotags.join(' ') + "`"
+            if (gotags.length)
+                tagStr = "`" + gotags.join(' ') + "`"
         }
 
         return tagStr;
     }
 
-    validateRecordTags(gotags: AnnotationExpression): string[]  {
+    validateRecordTags(gotags: AnnotationExpression): string[] {
         if (!isStringArray(gotags.args) && !isString(gotags.args)) {
             throw new GolangError("gotags annotation on a record must be an array", gotags.position)
         } else if (isString(gotags.args)) {
@@ -91,19 +125,20 @@ export class GolangVisitor extends BaseVisitor {
         return gotags.args;
     }
 
-   
+
     visitPackage(expression: PackageExpression): any {
         let out = [];
         this.package = expression.name;
         for (let child of expression.children) {
             out.push(this.visit(child));
         }
+        return out;
     }
     visitRecord(expression: RecordExpression): any {
 
         this.gotags = [];
-
-        let annotations = this.getAnnotations(expression.annotations);
+        this.imports = new Set();
+        let annotations = expression.annotations;
 
         let gotags = annotations.find(m => m.name == 'gotags');
         if (gotags) {
@@ -124,11 +159,16 @@ export class GolangVisitor extends BaseVisitor {
         }
         builder += '}'
 
-        console.log(builder)
+        return {
+            package: this.package,
+            name: expression.name,
+            body: builder,
+            imports: setToArray(this.imports)
+        };
 
     }
     visitProperty(expression: PropertyExpression): any {
-        let annotations = this.getAnnotations(expression.annotations);
+        let annotations = expression.annotations;
 
         let name = expression.name;
         let tags = this.generateTags(name, annotations);
@@ -143,7 +183,9 @@ export class GolangVisitor extends BaseVisitor {
     }
     visitType(expression: TypeExpression): any {
         switch (expression.type) {
-            case Type.Date: return "time.Time"
+            case Type.Date:
+                this.imports.add('time')
+                return "time.Time"
             case Type.Boolean: return "bool"
             case Type.Bytes: return "[]byte"
             default: return Type[expression.type].toLowerCase();
@@ -190,7 +232,7 @@ export const Meta: Description = {
     },
     run: (item: Expression, options: VisitorOptions): Promise<Result[]> => {
         let visitor = new GolangVisitor(options);
-        let json = visitor.visit(item);
+        let json = visitor.parse(item as PackageExpression);
 
         return Promise.resolve(json);
     }

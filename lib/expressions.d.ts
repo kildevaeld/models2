@@ -38,18 +38,18 @@ export declare class ImportExpression extends Expression {
 export declare class RecordExpression extends Expression {
     position: ExpressionPosition;
     name: string;
-    annotations: Expression[];
-    properties: Expression[];
+    annotations: AnnotationExpression[];
+    properties: PropertyExpression[];
     nodeType: Token;
-    constructor(position: ExpressionPosition, name: string, annotations: Expression[], properties: Expression[]);
+    constructor(position: ExpressionPosition, name: string, annotations: AnnotationExpression[], properties: PropertyExpression[]);
 }
 export declare class PropertyExpression extends Expression {
     position: ExpressionPosition;
     name: string;
-    annotations: Expression[];
+    annotations: AnnotationExpression[];
     type: Expression;
     nodeType: Token;
-    constructor(position: ExpressionPosition, name: string, annotations: Expression[], type: Expression);
+    constructor(position: ExpressionPosition, name: string, annotations: AnnotationExpression[], type: Expression);
 }
 export declare class TypeExpression extends Expression {
     position: ExpressionPosition;

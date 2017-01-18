@@ -1,5 +1,9 @@
 package models
 
+import (
+  "time"
+)
+
 // Person is the head of state
 type Person struct {
   Id string `json:"id,omitempty" msgpack:"id,omitempty"`
@@ -8,9 +12,7 @@ type Person struct {
   Address Address `json:"ADRRESS"`
 }
 
-type Lars struct {
+type Something struct {
   Id string 
-  Name string 
-  Description string 
-  Address *Address 
+  CreatedAt time.Time 
 }

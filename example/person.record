@@ -12,3 +12,8 @@ record Person {
     @gotags({"json":"ADRRESS"})
     address: models.Address;
 }
+
+record Something {
+    id: string;
+    createdAt: date;
+}

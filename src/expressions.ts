@@ -70,7 +70,7 @@ export class PackageExpression extends Expression {
 
 export class ImportExpression extends Expression {
     nodeType = Token.Import;
-    
+
     constructor(public position: ExpressionPosition, public path: string) {
         super();
     }
@@ -78,7 +78,7 @@ export class ImportExpression extends Expression {
 
 export class RecordExpression extends Expression {
     nodeType = Token.Record;
-    constructor(public position: ExpressionPosition, public name: string, public annotations: Expression[], public properties: Expression[]) {
+    constructor(public position: ExpressionPosition, public name: string, public annotations: AnnotationExpression[], public properties: PropertyExpression[]) {
         super();
 
     }
@@ -86,7 +86,7 @@ export class RecordExpression extends Expression {
 
 export class PropertyExpression extends Expression {
     nodeType = Token.Property;
-    constructor(public position: ExpressionPosition, public name: string, public annotations: Expression[], public type: Expression) {
+    constructor(public position: ExpressionPosition, public name: string, public annotations: AnnotationExpression[], public type: Expression) {
         super();
     }
 
