@@ -59,7 +59,7 @@ export async function run() {
             generator.ast(files)
                 .then(ast => {
                     console.log(JSON.stringify(ast, null, 2))
-                })
+                }).catch(e => console.log(e))
         })
 
     program.parse(process.argv);

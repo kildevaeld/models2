@@ -46,12 +46,12 @@ export class Generator extends EventEmitter {
 
         let m = data.map(file => {
             let ast = Parser.parse(file.toString());
-            return this.preprocessor.parse(ast);
+            return ast //this.preprocessor.parse(ast);
         })
         return await Promise.all(m);
     }
 
-    private async ensureOutputPath(path:string) {
+    private async ensureOutputPath(path: string) {
         try {
             await fs.stat(path)
         } catch (e) {
@@ -90,7 +90,7 @@ export class Generator extends EventEmitter {
                 this.emit('write:file', file);
             } else {
                 console.log(entry.data.toString());
-             }
+            }
 
         }
 

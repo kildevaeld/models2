@@ -4,22 +4,53 @@
 	const Modifier = tokens.Modifier;
 	const Type = tokens.Type;
 	const lodash = require('lodash');
+  const createExpression = require('./expressions').createExpression;
+  
+  function extractList(list, index) {
+    return list.map(function(element) { return element[index]; });
+  }
+
+  function buildList(head, tail, index) {
+    return [head].concat(extractList(tail, index));
+  }
+
+  var slice = Array.prototype.slice;
+  function expression() {
+    
+    let args = slice.call(arguments);
+    let type = args.shift();
+    return createExpression.apply(null, [type, location()].concat(args));
+  }
+
 }
 
 
-Expression
+/*Expression
   = __ p:Package __ i:(__ i:Import __ { return i;})* __  b:Body? {
 		return p.concat([i.concat(b)]);
+  }*/
+
+start
+  = program:Program { return program; }
+
+
+Program
+  = __ p:Package __ body:Elements? {
+    return expression(Token.Package, p, body)
   }
 
-
+Elements 
+  = head:(__ Import)? __ tail:Body? __ {
+    
+    return head.slice(1).concat(tail)
+  }
 
 Package
-	=  __ "package" _+ p:alpha+ __ semi __   { return [Token.Package, p.join('')]; }
+  =  __ "package" _+ p:alpha+ __ semi __   { return p.join(''); }
 
 Import
-	=  __ "import" _+ quote n:import_statement* quote __  semi __ {
-		return [Token.Import, n.join('')];
+	=  __ "import" _+ quote n:import_statement+ quote __  semi __ {
+		return expression(Token.Import, n.join(''))
 	}
 
     
@@ -30,43 +61,32 @@ Records
 	= __ recs:(  __ r:Record __ { return r; })+ { return recs; } 
 
 Record
-	= a:(aa:Annotation __ { return aa;})* "record" _+ name:[a-zA-Z0-9]+ __ "{" __ body:RecordBody* __ "}" {
-		return [Token.Record, name.join(''), a.concat(body)];
-    }
+	= a:(aa:Annotation __ { return aa;})* "record" _+ name:Identifier __ "{" __ body:RecordBody* __ "}" {
+		//return [Token.Record, name, a.concat(body)];
+    return expression(Token.Record, name, a, body)
+  }
     
 RecordBody
 	= props:(__ p:Property __ { return p; }) {
     	return props
     }
 
-/*Property
-	= a:Annotation _m p:Property { return a.concat([p]) }
-    / name:alpha+ o:'?'? _m ":" _m  type:PropertyType _m semi {
-    	return [Token.Property, name.join(''), type]
-    }
-*/
 
 Property
-	= a:(aa:Annotation __ { return aa;})* __ name:alpha+ o:'?'? __ ":" __  type:PropertyType _m semi {
-		type[2].push(...a)
-		return [Token.Property, name.join(''), type]
-    }
+	= a:(aa:Annotation __ { return aa;})* __ name:alpha+ __ ":" __  type:PropertyType __ semi {
+    return expression(Token.Property, name.join(''), a, type)
+  }
+
 
 PropertyType
-	= "[" __ t:Type __ "]" mod:Modifier? { 
-			t.push([[Token.Modifier, Modifier.Repeated]])
-			if (mod) t[2].push(mod)	
-			return t; 
-		}
-	/ t:Type mod:Modifier? {
-		t.push([])
-		if (mod) t[2].push(mod);
-		return t
-	 }
+  = t:Type "?" { return expression(Token.OptionalType, t); }
+  / t:Type { return t; }
+
 
 Type 
-	= t:ImportType
-	/ t:BuildInType { return [Token.BuildinType, t]}
+	= begin_array t:Type end_array { return expression(Token.RepeatedType, t)} 
+  / t:ImportType { return t; }
+	/ t:BuildInType { return expression(Token.BuildinType, t)}
 
 
 BuildInType
@@ -88,21 +108,23 @@ BuildInType
   / "bytes" { return Type.Bytes; }
 
 ImportType
-	= p:([a-zA-Z][a-zA-Z0-9]+) "." t:([a-zA-Z][a-zA-Z0-9]+) {
-		return [Token.ImportType, [lodash.flatten(p).join(''),lodash.flatten(t).join('')]];
+	= p:Identifier "." t:Identifier {
+    return expression(Token.ImportType, p, t);
+    //return [Token.ImportType, [lodash.flatten(p).join(''),lodash.flatten(t).join('')]];
 	}
 
-Modifier
-	= "?" { return [Token.Modifier, Modifier.Optional]}
 
 Annotation
-	= "@" a:alpha+ "(" o:JSON_text ")" {
-		return [Token.Modifier, Modifier.Annotation, a.join(''), o]
-	}
+	= "@" a:Identifier "(" o:JSON_text ")" {
+		//return [Token.Modifier, Modifier.Annotation, a.join(''), o]
+    return expression(Token.Annotation, a, o);
+  }
 	/ "@" a:alpha+ { return [Token.Modifier, Modifier.Annotation, a.join('')];}
 
 
 
+Identifier
+  = a:([a-zA-Z][a-zA-Z0-9_]+) { return lodash.flatten(a).join(''); }
 
 import_statement 
 	= [a-zA-Z0-9_./]

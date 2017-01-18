@@ -1,6 +1,6 @@
 
 export enum Token {
-    Package, Record, Property, Import, ImportType, BuildinType, Modifier, OptionalType, Annotation
+    Package = 1, Record, Property, Import, ImportType, BuildinType, Modifier, OptionalType, RepeatedType, Annotation
 }
 
 export enum Modifier {
@@ -8,7 +8,7 @@ export enum Modifier {
 }
 
 export enum Type {
-    String, Date,
+    String = 1, Date,
     Int8, Int16, Int32, Int64, Double, Float, Uint8, Uint16, Uint32, Uint64,
     Boolean, Int, Uint, Bytes
 }
