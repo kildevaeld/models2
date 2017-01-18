@@ -43,10 +43,9 @@ export class Generator extends EventEmitter {
     async ast(files: string[]) {
         let data = await Promise.all(files.map(file => fs.readFile(file)));
 
-
         let m = data.map(file => {
             let ast = Parser.parse(file.toString());
-            return ast //this.preprocessor.parse(ast);
+            return this.preprocessor.parse(ast);
         })
         return await Promise.all(m);
     }

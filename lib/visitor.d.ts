@@ -39,7 +39,6 @@ export interface IVisitor {
     visitRecord(expression: RecordExpression): any;
     visitProperty(expression: PropertyExpression): any;
     visitType(expression: TypeExpression): any;
-    visitImportType(expression: ImportTypeExpression): any;
     visitOptionalType(expression: OptionalTypeExpression): any;
     visitRepeatedType(expression: RepeatedTypeExpression): any;
     visitAnnotation(expression: AnnotationExpression): any;
@@ -48,7 +47,6 @@ export declare abstract class BaseVisitor implements IVisitor {
     options: VisitorOptions;
     constructor(options?: VisitorOptions);
     visit(expression: Expression): any;
-    abstract visitImport(expression: ImportExpression): any;
     abstract visitPackage(expression: PackageExpression): any;
     abstract visitRecord(expression: RecordExpression): any;
     abstract visitProperty(expression: PropertyExpression): any;
@@ -59,9 +57,13 @@ export declare abstract class BaseVisitor implements IVisitor {
     abstract visitAnnotation(expression: AnnotationExpression): any;
 }
 export declare class Preprocessor {
-    parse(item: Expression): Promise<Expression>;
+    parent: string;
+    previousParent: string;
+    parse(item: Expression): Promise<PackageExpression>;
     private process(item);
+    private detectCircularDependencies(path);
     private import(item);
+    private getInner(exp);
     private validateImportTypes(item);
     private getModels(item);
     private getImports(item);

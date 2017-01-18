@@ -1,6 +1,5 @@
 package models;
 
-import "./person";
 
 @doc("This is the address")
 @gotags("json")
@@ -14,5 +13,5 @@ record Address {
     @gotags({"json":"created_at"})
     createdAt: date;
     email: [string];
-    test: [model.Test]?;
+    test: [string]?;
 }

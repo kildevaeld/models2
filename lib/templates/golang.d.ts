@@ -1,5 +1,5 @@
 import { BaseVisitor, Description } from '../visitor';
-import { Expression, PackageExpression, ImportExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, OptionalTypeExpression, ExpressionPosition } from '../expressions';
+import { Expression, PackageExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, OptionalTypeExpression, ExpressionPosition } from '../expressions';
 export declare class GolangError extends Error {
     message: string;
     location: ExpressionPosition;
@@ -12,7 +12,6 @@ export declare class GolangVisitor extends BaseVisitor {
     getAnnotations(exp: Expression[]): AnnotationExpression[];
     generateTags(name: string, annotations: AnnotationExpression[]): string;
     validateRecordTags(gotags: AnnotationExpression): string[];
-    visitImport(expression: ImportExpression): any;
     visitPackage(expression: PackageExpression): any;
     visitRecord(expression: RecordExpression): any;
     visitProperty(expression: PropertyExpression): any;

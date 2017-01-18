@@ -42,31 +42,6 @@ function arrayToSet(...arrays: string[]) {
 
 const Indention = '  ';
 
-function toString(input) {
-
-    let result: Result[] = []
-
-    for (let o of input) {
-        let i = [];
-        for (let ip of o.imports) {
-            i.push(`  "${ip}"`);
-        }
-
-        let builder = "package " + o.package + '\n';
-
-        if (i.length) {
-            builder += `\nimport (\n${i.join('\n')}\n)\n`;
-        }
-
-
-        result.push({
-            name: o.name,
-            data: new Buffer(builder + "\n" + o.record)
-        })
-    }
-
-    return result;
-}
 
 export class GolangVisitor extends BaseVisitor {
     imports: Set<string>;
@@ -116,9 +91,7 @@ export class GolangVisitor extends BaseVisitor {
         return gotags.args;
     }
 
-    visitImport(expression: ImportExpression): any {
-        console.log('visit import')
-    }
+   
     visitPackage(expression: PackageExpression): any {
         let out = [];
         this.package = expression.name;

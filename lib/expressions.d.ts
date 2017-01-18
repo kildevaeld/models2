@@ -26,6 +26,7 @@ export declare class PackageExpression extends Expression {
     name: string;
     children: Expression[];
     nodeType: Token;
+    imports: PackageExpression[];
     constructor(position: ExpressionPosition, name: string, children: Expression[]);
 }
 export declare class ImportExpression extends Expression {

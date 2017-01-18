@@ -61,6 +61,7 @@ export abstract class Expression {
 
 export class PackageExpression extends Expression {
     nodeType = Token.Package;
+    imports: PackageExpression[];
     constructor(public position: ExpressionPosition, public name: string, public children: Expression[]) {
         super();
     }
@@ -69,6 +70,7 @@ export class PackageExpression extends Expression {
 
 export class ImportExpression extends Expression {
     nodeType = Token.Import;
+    
     constructor(public position: ExpressionPosition, public path: string) {
         super();
     }

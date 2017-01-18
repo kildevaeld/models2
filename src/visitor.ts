@@ -51,7 +51,7 @@ export interface IVisitor {
     visitRecord(expression: RecordExpression): any;
     visitProperty(expression: PropertyExpression): any;
     visitType(expression: TypeExpression): any;
-    visitImportType(expression: ImportTypeExpression): any;
+    //visitImportType(expression: ImportTypeExpression): any;
     visitOptionalType(expression: OptionalTypeExpression): any;
     visitRepeatedType(expression: RepeatedTypeExpression): any;
     visitAnnotation(expression: AnnotationExpression): any 
@@ -68,7 +68,7 @@ export abstract class BaseVisitor implements IVisitor {
             case Token.Package: return this.visitPackage(expression as PackageExpression);
             case Token.Record: return this.visitRecord(expression as RecordExpression);
             case Token.Property: return this.visitProperty(expression as PropertyExpression);
-            case Token.Import: return this.visitImport(expression as ImportExpression);
+            //case Token.Import: return this.visitImport(expression as ImportExpression);
             case Token.BuildinType: return this.visitType(expression as TypeExpression);
             case Token.ImportType: return this.visitImportType(expression as ImportTypeExpression);
             case Token.OptionalType: return this.visitOptionalType(expression as OptionalTypeExpression);
@@ -78,7 +78,7 @@ export abstract class BaseVisitor implements IVisitor {
 
     }
 
-    abstract visitImport(expression: ImportExpression): any;
+    //abstract visitImport(expression: ImportExpression): any;
     abstract visitPackage(expression: PackageExpression): any;
     abstract visitRecord(expression: RecordExpression): any;
     abstract visitProperty(expression: PropertyExpression): any;
@@ -92,65 +92,99 @@ export abstract class BaseVisitor implements IVisitor {
 
 
 export class Preprocessor {
-
+    parent: string;
+    previousParent: string
     async parse(item: Expression) {
-        item = await this.process(item)
-        this.validateImportTypes(item);
-        return item;
+        let e = await this.process(item)
+        this.validateImportTypes(e);
+        return e;
     }
 
-    private async process(item: Expression) {
+
+    private async process(item: Expression): Promise<PackageExpression> {
         if (!item) return null;
-        switch (item[0]) {
-            case Token.Package:
-                item[2] = await Promise.all(item[2].map(i => this.process(i)));
-                if (item[2].length == 1 && item[2][0] == null) {
-                    item[2] = [];
-                }
-                return item;
-            case Token.Import:
-                return await this.import(item);
-            default:
-                return item;
+
+
+        if (item.nodeType !== Token.Package) {
+            throw new Error('Expression not a package');
         }
 
+        let e = item as PackageExpression;
+        e.imports = [];
+
+        let children = [];
+        for (let i = 0, len = e.children.length; i < len; i++) {
+            let child = e.children[i];
+            if (child.nodeType !== Token.Import) {
+                children.push(child)
+                continue
+            }
+    
+            e.imports.push(await this.import(child as ImportExpression));
+        }
+        e.children = children;
+        
+        return e;
     }
 
-    private async import(item: Expression) {
-
-        let path = Path.resolve(item[1] + ".record");
-
-        let data = await fs.readFile(item[1] + ".record");
-        let ast = Parser.parse(data.toString());
-
-        let out = await this.parse(ast);
-        let i = [Token.Import, [out[1], path]];
-        i[2] = out[2];
-        return i;
+    private detectCircularDependencies(path: string) {
+        if (this.previousParent == path) {
+            let e = `circle dependencies detected: ${Path.basename(path)} and ${Path.basename(this.parent)} depends on eachother`;
+            throw new Error(e);   
+        }
+        this.previousParent = this.parent
+        this.parent = path;
     }
 
-    private async validateImportTypes(item: Expression) {
+    private async import(item: ImportExpression): Promise<PackageExpression> {
+        
+        let path = Path.resolve(item.path + ".record");
+        this.detectCircularDependencies(path);
 
-        let children = item[2];
+
+        let data = await fs.readFile(path);
+        
+        let ast: PackageExpression = Parser.parse(data.toString());
+        if (!(ast instanceof PackageExpression)) {
+            throw Error('ERROR');
+        }
+
+        return await this.parse(ast);
+
+    }
+
+    private getInner(exp: PropertyExpression) {
+        switch (exp.type.nodeType) {
+            case Token.ImportType: 
+            case Token.BuildinType: return exp.type;
+            default: return this.getInner(exp.type as PropertyExpression);
+        } 
+    }
+
+    private validateImportTypes(item: PackageExpression) {
+
         let imports = this.getImports(item);
         let models = this.getModels(item);
 
         let errors = [];
         for (let model of models) {
 
-            let importTypes = model[2].map(m => {
-                if (m[0] == Token.Property) return m;
-                return m[2];
-            }).filter(m => m[2][0] == Token.ImportType);
+            let importTypes: {name:string,prop:ImportTypeExpression;}[] = <any>model.properties.map(m => {
+                if (m.nodeType == Token.Property) return {
+                    prop: this.getInner(m as PropertyExpression),
+                    name: (m as PropertyExpression).name
+                };
+                return null
+            }).filter(m => m !== null &&  m.prop.nodeType == Token.ImportType)
+            
 
             for (let prop of importTypes) {
-                let type = prop[2];
-
-                let found = imports.find(m => m[0] == type[1][0] && m[1] == type[1][1]);
+                let found = !!imports.find(m => m[0] == prop.prop.packageName && m[1] == prop.prop.name);
                 if (!found) {
                     errors.push({
-                        property: prop[1],
-                        type: type[1]
+                        property: prop.name,
+                        type: prop.prop.name,
+                        position: prop.prop.position
                     });
                 }
             }
@@ -162,22 +196,16 @@ export class Preprocessor {
 
     }
 
-    private getModels(item: Expression) {
-        let children = item[2];
-        let models = children.filter(m => {
-            return m[0] == Token.Record;
-        })
-        return models;
+    private getModels(item: PackageExpression) {
+        return item.children.filter(m => m.nodeType == Token.Record) as RecordExpression[];
     }
 
-    private getImports(item: Expression) {
-        let children = item[2];
-        let imports = children.filter(m => {
-            return m[0] == Token.Import;
-        }).map(m => {
-            return m[2].filter(mm => mm[0] == Token.Record).map(mm => [m[1][0], mm[1]]);
+    private getImports(item: PackageExpression) {
+        let imports = item.imports.map( m => {
+            return m.children.filter( mm => mm.nodeType == Token.Record).map( mm => [m.name, (mm as RecordExpression).name]);
         });
         return _.flatten(imports);
+    
     }
 
 }

@@ -1,10 +1,10 @@
 {
-	const tokens = require('./tokens');
-	const Token = tokens.Token;
-	const Modifier = tokens.Modifier;
-	const Type = tokens.Type;
-	const lodash = require('lodash');
-  const createExpression = require('./expressions').createExpression;
+	var tokens = require('./tokens');
+	var Token = tokens.Token;
+	var Modifier = tokens.Modifier;
+	var Type = tokens.Type;
+	var lodash = require('lodash');
+  var createExpression = require('./expressions').createExpression;
   
   function extractList(list, index) {
     return list.map(function(element) { return element[index]; });
@@ -16,9 +16,8 @@
 
   var slice = Array.prototype.slice;
   function expression() {
-    
-    let args = slice.call(arguments);
-    let type = args.shift();
+    var args = slice.call(arguments);
+    var type = args.shift();
     return createExpression.apply(null, [type, location()].concat(args));
   }
 
@@ -42,7 +41,7 @@ Program
 Elements 
   = head:(__ Import)? __ tail:Body? __ {
     
-    return head.slice(1).concat(tail)
+    return (head||[null]).slice(1).concat(tail)
   }
 
 Package
