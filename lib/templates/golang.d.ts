@@ -1,16 +1,25 @@
-import { Item, BaseVisitor, Description, Result } from '../visitor';
+import { BaseVisitor, Description } from '../visitor';
+import { Expression, PackageExpression, ImportExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, OptionalTypeExpression, ExpressionPosition } from '../expressions';
+export declare class GolangError extends Error {
+    message: string;
+    location: ExpressionPosition;
+    constructor(message: string, location: ExpressionPosition);
+}
 export declare class GolangVisitor extends BaseVisitor {
     imports: Set<string>;
     package: string;
     gotags: string[];
-    parse(item: Item): Result[];
-    visitImport(item: Item): any;
-    visitPackage(item: Item): any;
-    visitRecord(item: Item): any;
-    visitProperty(item: Item): any;
-    visitAnnotation(item: Item): any;
-    visitBuildinType(item: Item): any;
-    visitImportType(item: Item): any;
-    visitModifier(item: Item): any;
+    getAnnotations(exp: Expression[]): AnnotationExpression[];
+    generateTags(name: string, annotations: AnnotationExpression[]): string;
+    validateRecordTags(gotags: AnnotationExpression): string[];
+    visitImport(expression: ImportExpression): any;
+    visitPackage(expression: PackageExpression): any;
+    visitRecord(expression: RecordExpression): any;
+    visitProperty(expression: PropertyExpression): any;
+    visitType(expression: TypeExpression): any;
+    visitImportType(expression: ImportTypeExpression): any;
+    visitOptionalType(expression: OptionalTypeExpression): any;
+    visitRepeatedType(expression: RepeatedTypeExpression): any;
+    visitAnnotation(expression: AnnotationExpression): any;
 }
 export declare const Meta: Description;

@@ -132,7 +132,6 @@ module.exports = (function() {
         peg$c79 = { type: "literal", value: ".", description: "\".\"" },
         peg$c80 = function(p, t) {
             return expression(Token.ImportType, p, t);
-            //return [Token.ImportType, [lodash.flatten(p).join(''),lodash.flatten(t).join('')]];
         	},
         peg$c81 = "@",
         peg$c82 = { type: "literal", value: "@", description: "\"@\"" },
@@ -141,10 +140,9 @@ module.exports = (function() {
         peg$c85 = ")",
         peg$c86 = { type: "literal", value: ")", description: "\")\"" },
         peg$c87 = function(a, o) {
-        		//return [Token.Modifier, Modifier.Annotation, a.join(''), o]
             return expression(Token.Annotation, a, o);
           },
-        peg$c88 = function(a) { return [Token.Modifier, Modifier.Annotation, a.join('')];},
+        peg$c88 = function(a) { return expression(Token.Annotation, a, null); },
         peg$c89 = /^[a-zA-Z]/,
         peg$c90 = { type: "class", value: "[a-zA-Z]", description: "[a-zA-Z]" },
         peg$c91 = /^[a-zA-Z0-9_]/,
@@ -1554,16 +1552,7 @@ module.exports = (function() {
           if (peg$silentFails === 0) { peg$fail(peg$c82); }
         }
         if (s1 !== peg$FAILED) {
-          s2 = [];
-          s3 = peg$parsealpha();
-          if (s3 !== peg$FAILED) {
-            while (s3 !== peg$FAILED) {
-              s2.push(s3);
-              s3 = peg$parsealpha();
-            }
-          } else {
-            s2 = peg$FAILED;
-          }
+          s2 = peg$parseIdentifier();
           if (s2 !== peg$FAILED) {
             peg$savedPos = s0;
             s1 = peg$c88(s2);

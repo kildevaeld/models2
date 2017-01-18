@@ -3,11 +3,15 @@ package models;
 import "./person";
 
 @doc("This is the address")
+@gotags("json")
 record Address {
     @doc("This should stil be here")
     street: string?;
     city: string;
     isoCode: string;
+
+    @gopointer
+    @gotags({"json":"created_at"})
     createdAt: date;
     email: [string];
     test: [model.Test]?;

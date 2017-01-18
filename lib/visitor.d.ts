@@ -1,7 +1,5 @@
 /// <reference types="node" />
-import { Token } from './tokens';
-export declare type Item = [Token, any, any];
-export declare type Package = [Token, string, Item[]];
+import { Expression, PackageExpression, ImportExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, OptionalTypeExpression } from './expressions';
 export interface VisitorOptions {
     split: boolean;
     file: string;
@@ -27,7 +25,7 @@ export interface Description {
     extname: string;
     description?: string;
     annotations?: AnnotationDescriptions;
-    run(item: Item, options: VisitorOptions): Promise<Result[]>;
+    run(item: Expression, options: VisitorOptions): Promise<Result[]>;
 }
 export declare class ValidationError extends Error {
     message: string;
@@ -35,30 +33,33 @@ export declare class ValidationError extends Error {
     constructor(message: string, errors: any);
 }
 export interface IVisitor {
-    visit(item: Item): any;
-    visitImport(item: Item): any;
-    visitPackage(item: Item): any;
-    visitRecord(item: Item): any;
-    visitProperty(item: Item): any;
-    visitBuildinType(item: Item): any;
-    visitImportType(item: Item): any;
-    visitModifier(item: Item): any;
+    visit(expression: Expression): any;
+    visitImport(expression: ImportExpression): any;
+    visitPackage(expression: PackageExpression): any;
+    visitRecord(expression: RecordExpression): any;
+    visitProperty(expression: PropertyExpression): any;
+    visitType(expression: TypeExpression): any;
+    visitImportType(expression: ImportTypeExpression): any;
+    visitOptionalType(expression: OptionalTypeExpression): any;
+    visitRepeatedType(expression: RepeatedTypeExpression): any;
+    visitAnnotation(expression: AnnotationExpression): any;
 }
 export declare abstract class BaseVisitor implements IVisitor {
     options: VisitorOptions;
     constructor(options?: VisitorOptions);
-    parse(item: Item): any;
-    visit(item: Item): any;
-    abstract visitImport(item: Item): any;
-    abstract visitPackage(item: Item): any;
-    abstract visitRecord(item: Item): any;
-    abstract visitProperty(item: Item): any;
-    abstract visitBuildinType(item: Item): any;
-    abstract visitImportType(item: Item): any;
-    abstract visitModifier(item: Item): any;
+    visit(expression: Expression): any;
+    abstract visitImport(expression: ImportExpression): any;
+    abstract visitPackage(expression: PackageExpression): any;
+    abstract visitRecord(expression: RecordExpression): any;
+    abstract visitProperty(expression: PropertyExpression): any;
+    abstract visitType(expression: TypeExpression): any;
+    abstract visitImportType(expression: ImportTypeExpression): any;
+    abstract visitOptionalType(expression: OptionalTypeExpression): any;
+    abstract visitRepeatedType(expression: RepeatedTypeExpression): any;
+    abstract visitAnnotation(expression: AnnotationExpression): any;
 }
 export declare class Preprocessor {
-    parse(item: Item): Promise<[Token, any, any]>;
+    parse(item: Expression): Promise<Expression>;
     private process(item);
     private import(item);
     private validateImportTypes(item);

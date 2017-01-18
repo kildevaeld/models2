@@ -110,16 +110,14 @@ BuildInType
 ImportType
 	= p:Identifier "." t:Identifier {
     return expression(Token.ImportType, p, t);
-    //return [Token.ImportType, [lodash.flatten(p).join(''),lodash.flatten(t).join('')]];
 	}
 
 
 Annotation
 	= "@" a:Identifier "(" o:JSON_text ")" {
-		//return [Token.Modifier, Modifier.Annotation, a.join(''), o]
     return expression(Token.Annotation, a, o);
   }
-	/ "@" a:alpha+ { return [Token.Modifier, Modifier.Annotation, a.join('')];}
+	/ "@" a:Identifier { return expression(Token.Annotation, a, null); }
 
 
 

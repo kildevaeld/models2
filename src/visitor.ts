@@ -4,9 +4,11 @@ import * as _ from 'lodash';
 
 import { Token } from './tokens';
 import * as Parser from './models';
+import {Expression, PackageExpression, ImportExpression, RecordExpression, 
+    AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, 
+    RepeatedTypeExpression, OptionalTypeExpression } from './expressions';
 
-export type Item = [Token, any, any];
-export type Package = [Token, string, Item[]];
+
 
 export interface VisitorOptions {
     split: boolean;
@@ -33,7 +35,7 @@ export interface Description {
     extname: string;
     description?: string;
     annotations?: AnnotationDescriptions;
-    run(item: Item, options: VisitorOptions): Promise<Result[]>
+    run(item: Expression, options: VisitorOptions): Promise<Result[]>
 }
 
 export class ValidationError extends Error {
@@ -42,71 +44,62 @@ export class ValidationError extends Error {
     }
 }
 
-function isArray(a: any): a is Item[] {
-    return Array.isArray(a);
-}
-
 export interface IVisitor {
-    visit(item: Item): any;
-    visitImport(item: Item): any;
-    visitPackage(item: Item): any;
-    visitRecord(item: Item): any;
-    visitProperty(item: Item): any;
-    visitBuildinType(item: Item): any;
-    visitImportType(item: Item): any;
-    //visitAnnotation(item: Item): any;
-    visitModifier(item: Item): any;
+    visit(expression: Expression): any;
+    visitImport(expression: ImportExpression): any;
+    visitPackage(expression: PackageExpression): any;
+    visitRecord(expression: RecordExpression): any;
+    visitProperty(expression: PropertyExpression): any;
+    visitType(expression: TypeExpression): any;
+    visitImportType(expression: ImportTypeExpression): any;
+    visitOptionalType(expression: OptionalTypeExpression): any;
+    visitRepeatedType(expression: RepeatedTypeExpression): any;
+    visitAnnotation(expression: AnnotationExpression): any 
 }
 
 export abstract class BaseVisitor implements IVisitor {
 
     constructor(public options?: VisitorOptions) { }
 
-    public parse(item: Item): any {
-        return this.visit(item);
-    }
+   
+    visit(expression: Expression): any {
 
-    visit(item: Item): any {
-
-        switch (item[0]) {
-            case Token.Package: return this.visitPackage(item);
-            case Token.Record: return this.visitRecord(item);
-            case Token.Property: return this.visitProperty(item);
-            //case Token.Annotation: return this.visitAnnotation(item);
-            case Token.Import: return this.visitImport(item);
-            case Token.BuildinType: return this.visitBuildinType(item);
-            case Token.ImportType: return this.visitImportType(item);
-            case Token.Modifier: return this.visitModifier(item);
-            default:
-                if (isArray(item)) {
-                    return item.map(i => this.visit(i));
-                }
-                throw new Error("not a type" + item);
+        switch(expression.nodeType) {
+            case Token.Package: return this.visitPackage(expression as PackageExpression);
+            case Token.Record: return this.visitRecord(expression as RecordExpression);
+            case Token.Property: return this.visitProperty(expression as PropertyExpression);
+            case Token.Import: return this.visitImport(expression as ImportExpression);
+            case Token.BuildinType: return this.visitType(expression as TypeExpression);
+            case Token.ImportType: return this.visitImportType(expression as ImportTypeExpression);
+            case Token.OptionalType: return this.visitOptionalType(expression as OptionalTypeExpression);
+            case Token.RepeatedType: return this.visitRepeatedType(expression as RepeatedTypeExpression);
+            case Token.Annotation: return this.visitAnnotation(expression as AnnotationExpression);
         }
 
     }
 
-    abstract visitImport(item: Item): any;
-    abstract visitPackage(item: Item): any;
-    abstract visitRecord(item: Item): any;
-    abstract visitProperty(item: Item): any;
-    //abstract visitAnnotation(item: Item): any;
-    abstract visitBuildinType(item: Item): any;
-    abstract visitImportType(item: Item): any;
-    abstract visitModifier(item: Item): any;
+    abstract visitImport(expression: ImportExpression): any;
+    abstract visitPackage(expression: PackageExpression): any;
+    abstract visitRecord(expression: RecordExpression): any;
+    abstract visitProperty(expression: PropertyExpression): any;
+    abstract visitType(expression: TypeExpression): any;
+    abstract visitImportType(expression: ImportTypeExpression): any;
+    abstract visitOptionalType(expression: OptionalTypeExpression): any;
+    abstract visitRepeatedType(expression: RepeatedTypeExpression): any;
+    abstract visitAnnotation(expression: AnnotationExpression): any
 
 }
 
 
 export class Preprocessor {
 
-    async parse(item: Item) {
+    async parse(item: Expression) {
         item = await this.process(item)
         this.validateImportTypes(item);
         return item;
     }
 
-    private async process(item: Item) {
+    private async process(item: Expression) {
         if (!item) return null;
         switch (item[0]) {
             case Token.Package:
@@ -123,7 +116,7 @@ export class Preprocessor {
 
     }
 
-    private async import(item: Item) {
+    private async import(item: Expression) {
 
         let path = Path.resolve(item[1] + ".record");
 
@@ -136,7 +129,7 @@ export class Preprocessor {
         return i;
     }
 
-    private async validateImportTypes(item: Item) {
+    private async validateImportTypes(item: Expression) {
 
         let children = item[2];
         let imports = this.getImports(item);
@@ -169,7 +162,7 @@ export class Preprocessor {
 
     }
 
-    private getModels(item: Item) {
+    private getModels(item: Expression) {
         let children = item[2];
         let models = children.filter(m => {
             return m[0] == Token.Record;
@@ -177,7 +170,7 @@ export class Preprocessor {
         return models;
     }
 
-    private getImports(item: Item) {
+    private getImports(item: Expression) {
         let children = item[2];
         let imports = children.filter(m => {
             return m[0] == Token.Import;

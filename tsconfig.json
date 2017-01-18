@@ -5,7 +5,9 @@
         "noImplicitAny": false,
         "sourceMap": false,
         "allowJs": false,
-        "outDir": "lib"
+        "outDir": "lib",
+        "noUnusedLocals": true,
+        "noUnusedParameters": true
     },
     /*"files": [
         "src/index.ts",
