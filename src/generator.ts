@@ -72,11 +72,11 @@ export class Generator extends EventEmitter {
 
         for (let entry of map) {
             let ast = Parser.parse(entry.data.toString());
-            //ast = await this.preprocessor.parse(ast);
+            ast = await this.preprocessor.parse(ast);
 
             let result = await desc.run(ast, { split: false, file: entry.name.replace('.record', desc.extname) });
 
-            //out.push(...result)
+            out.push(...result)
             this.emit("parse:file", entry.name);
         }
 

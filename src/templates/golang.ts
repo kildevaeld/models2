@@ -170,7 +170,7 @@ export const Meta: Description = {
     annotations: {
         records: {
             gotags: {
-                arguments: '[string]'
+                arguments: '[string]|string'
             },
             doc: {
                 arguments: "string"
@@ -178,7 +178,7 @@ export const Meta: Description = {
         },
         properties: {
             gotags: {
-                arguments: '[string] or {key:string}'
+                arguments: '[string]|{key:string}'
             },
             gopointer: {
                 arguments: "void"
