@@ -19,6 +19,7 @@ export declare abstract class Expression {
     static createOptionalType(position: ExpressionPosition, args: any[]): OptionalTypeExpression;
     static createImportType(position: ExpressionPosition, args: any[]): ImportTypeExpression;
     static createRepeatedType(position: ExpressionPosition, args: any[]): RepeatedTypeExpression;
+    static createMapType(position: ExpressionPosition, args: any[]): MapTypeExpression;
     static createAnnotation(position: ExpressionPosition, args: any[]): AnnotationExpression;
 }
 export declare class PackageExpression extends Expression {
@@ -75,6 +76,13 @@ export declare class RepeatedTypeExpression extends Expression {
     type: Expression;
     nodeType: Token;
     constructor(position: ExpressionPosition, type: Expression);
+}
+export declare class MapTypeExpression extends Expression {
+    position: ExpressionPosition;
+    key: Expression;
+    value: Expression;
+    nodeType: Token;
+    constructor(position: ExpressionPosition, key: Expression, value: Expression);
 }
 export declare class AnnotationExpression extends Expression {
     position: ExpressionPosition;

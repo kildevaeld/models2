@@ -1,5 +1,5 @@
 
-import { Item, BaseVisitor, Description, Result, VisitorOptions } from '../visitor';
+import { BaseVisitor, Description, Result, VisitorOptions } from '../visitor';
 import { Type, Modifier, Token } from '../tokens'
 
 
@@ -35,7 +35,7 @@ export interface JSONVisitorOptions extends VisitorOptions {
 
 export class JsonVisitor extends BaseVisitor {
     options: JSONVisitorOptions
-    
+
 
     parse(item: Item): JsonPackage {
         return super.parse(item);

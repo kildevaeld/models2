@@ -1,6 +1,7 @@
 
 export enum Token {
-    Package = 1, Record, Property, Import, ImportType, BuildinType, Modifier, OptionalType, RepeatedType, Annotation
+    Package = 1, Record, Property, Import, ImportType, BuildinType,
+    OptionalType, RepeatedType, MapType, Annotation
 }
 
 export enum Modifier {

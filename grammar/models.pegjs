@@ -85,10 +85,13 @@ PropertyType
 Type 
 	= begin_array t:Type end_array { return expression(Token.RepeatedType, t)} 
   / t:ImportType { return t; }
-	/ t:BuildInType { return expression(Token.BuildinType, t)}
+	/ t:PrimitiveType { return expression(Token.BuildinType, t)}
 
+CompositeType 
+  = RepeatedType
+  / MapType
 
-BuildInType
+PrimitiveType
 	= "string" { return Type.String; }
 	/ "date" { return Type.Date; }
 	/ "bool" { return Type.Boolean; }
@@ -98,13 +101,21 @@ BuildInType
 	/ "int16" { return Type.Int16; }
 	/ "int32" { return Type.Int32; }
 	/ "int64" { return Type.Int64; }
-	/ "uint8" { return Type.Int8; }
+	/ "uint8" { return Type.Uint8; }
 	/ "uint16" { return Type.Uint16; }
 	/ "uint32" { return Type.Uint32; }
 	/ "uint64" { return Type.Uint64; }
 	/ "double" { return Type.Double; }
 	/ "float" { return Type.Float; }
   / "bytes" { return Type.Bytes; }
+
+ArrayType
+  = begin_array t:Type end_array { return expression(Token.RepeatedType, t)} 
+
+MapType
+  = "map<" __ k:Type __ "," __ k:Type __ ">" {
+    return expression(Token.MapType, k, t);   
+  }
 
 ImportType
 	= p:Identifier "." t:Identifier {

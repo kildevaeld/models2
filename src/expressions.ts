@@ -54,6 +54,10 @@ export abstract class Expression {
         return new RepeatedTypeExpression(position, args[0]);
     }
 
+    static createMapType(position: ExpressionPosition, args: any[]) {
+        return new MapTypeExpression(position, args[0], args[1]);
+    }
+
     static createAnnotation(position: ExpressionPosition, args: any[]) {
         return new AnnotationExpression(position, args[0], args[1]);
     }
@@ -116,6 +120,13 @@ export class ImportTypeExpression extends Expression {
 export class RepeatedTypeExpression extends Expression {
     nodeType = Token.RepeatedType;
     constructor(public position: ExpressionPosition, public type: Expression) {
+        super();
+    }
+}
+
+export class MapTypeExpression extends Expression {
+    nodeType = Token.MapType;
+    constructor(public position: ExpressionPosition, public key: Expression, public value: Expression) {
         super();
     }
 }

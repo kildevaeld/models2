@@ -5,9 +5,9 @@ export declare enum Token {
     Import = 4,
     ImportType = 5,
     BuildinType = 6,
-    Modifier = 7,
-    OptionalType = 8,
-    RepeatedType = 9,
+    OptionalType = 7,
+    RepeatedType = 8,
+    MapType = 9,
     Annotation = 10,
 }
 export declare enum Modifier {

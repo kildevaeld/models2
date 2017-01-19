@@ -89,7 +89,7 @@ export class GolangVisitor extends BaseVisitor {
         return toString(out)
     }
 
-    generateTags(name: string, annotations: AnnotationExpression[]) {
+    private generateTags(name: string, annotations: AnnotationExpression[]) {
         let gotags: any = this.gotags
         let gotagsAnnotation = annotations.find(m => m.name == 'gotags');
         if (gotagsAnnotation) {
@@ -117,7 +117,7 @@ export class GolangVisitor extends BaseVisitor {
 
     validateRecordTags(gotags: AnnotationExpression): string[] {
         if (!isStringArray(gotags.args) && !isString(gotags.args)) {
-            throw new GolangError("gotags annotation on a record must be an array", gotags.position)
+            throw new GolangError("gotags annotation on a record must be an array of string or a string", gotags.position)
         } else if (isString(gotags.args)) {
             return [gotags.args];
         }
