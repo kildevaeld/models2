@@ -97,7 +97,7 @@ export class PropertyExpression extends Expression {
 }
 
 export class TypeExpression extends Expression {
-    nodeType = Token.BuildinType;
+    nodeType = Token.PrimitiveType;
     constructor(public position: ExpressionPosition, public type: Type) {
         super();
     }
@@ -144,7 +144,7 @@ export function createExpression(type: Token, position: ExpressionPosition, ...a
         case Token.Import: return Expression.createImport(position, args);
         case Token.Record: return Expression.createRecord(position, args);
         case Token.Property: return Expression.createProperty(position, args);
-        case Token.BuildinType: return Expression.createType(position, args);
+        case Token.PrimitiveType: return Expression.createType(position, args);
         case Token.OptionalType: return Expression.createOptionalType(position, args);
         case Token.ImportType: return Expression.createImportType(position, args);
         case Token.RepeatedType: return Expression.createRepeatedType(position, args);

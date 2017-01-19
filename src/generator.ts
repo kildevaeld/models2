@@ -14,7 +14,8 @@ function isDescription(a: any): a is Description {
 }
 
 interface Options {
-    output: string
+    output: string;
+    split: boolean;
 }
 
 export class Generator extends EventEmitter {
@@ -74,14 +75,14 @@ export class Generator extends EventEmitter {
             let ast = Parser.parse(entry.data.toString());
             ast = await this.preprocessor.parse(ast);
 
-            let result = await desc.run(ast, { split: false, file: entry.name.replace('.record', desc.extname) });
+            let result = await desc.run(ast, { split: options.split, file: entry.name.replace('.record', desc.extname) });
 
             out.push(...result)
             this.emit("parse:file", entry.name);
         }
 
         if (options.output) await this.ensureOutputPath(options.output);
-        
+
         for (let entry of out) {
             if (options.output) {
                 let file = Path.join(options.output, entry.name);

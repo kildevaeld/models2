@@ -6,9 +6,8 @@ import { isString, isStringArray } from '../utils';
 import {
     Expression, PackageExpression, RecordExpression,
     AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression,
-    RepeatedTypeExpression, OptionalTypeExpression, ExpressionPosition
+    RepeatedTypeExpression, MapTypeExpression, OptionalTypeExpression, ExpressionPosition
 } from '../expressions';
-import * as _ from 'lodash';
 
 export class GolangError extends Error {
     constructor(public message: string, public location: ExpressionPosition) {
@@ -21,14 +20,6 @@ function ucFirst(name: string) {
 }
 
 
-
-function setToArray(set: Set<String>) {
-    let out = [];
-    for (let str of set) {
-        out.push(str);
-    }
-    return out;
-}
 
 function arrayToSet(...arrays: string[]) {
     let out = new Set<string>()
@@ -55,7 +46,6 @@ function toString(input) {
         if (i.length) {
             builder += `\nimport (\n${i.join('\n')}\n)\n`;
         }
-
 
         result.push({
             name: o.name,
@@ -162,9 +152,9 @@ export class GolangVisitor extends BaseVisitor {
 
         return {
             package: this.package,
-            name: expression.name,
+            name: expression.name.toLowerCase() + '.go',
             body: builder,
-            imports: setToArray(this.imports)
+            imports: [...this.imports]
         };
 
     }

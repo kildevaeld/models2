@@ -70,7 +70,7 @@ export abstract class BaseVisitor implements IVisitor {
             case Token.Record: return this.visitRecord(expression as RecordExpression);
             case Token.Property: return this.visitProperty(expression as PropertyExpression);
             //case Token.Import: return this.visitImport(expression as ImportExpression);
-            case Token.BuildinType: return this.visitType(expression as TypeExpression);
+            case Token.PrimitiveType: return this.visitType(expression as TypeExpression);
             case Token.ImportType: return this.visitImportType(expression as ImportTypeExpression);
             case Token.OptionalType: return this.visitOptionalType(expression as OptionalTypeExpression);
             case Token.RepeatedType: return this.visitRepeatedType(expression as RepeatedTypeExpression);
@@ -160,7 +160,7 @@ export class Preprocessor {
         switch (exp.type.nodeType) {
             case Token.ImportType:
             case Token.MapType:
-            case Token.BuildinType: return exp.type;
+            case Token.PrimitiveType: return exp.type;
             default: return this.getInner(exp.type as PropertyExpression);
         }
     }

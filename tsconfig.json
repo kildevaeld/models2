@@ -9,6 +9,7 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true
     },
+    "compileOnSave": false,
     /*"files": [
         "src/index.ts",
         "src/visitor.ts",

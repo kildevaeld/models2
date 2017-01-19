@@ -1,5 +1,5 @@
 import { BaseVisitor, Description, Result } from '../visitor';
-import { PackageExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, OptionalTypeExpression, ExpressionPosition } from '../expressions';
+import { PackageExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, MapTypeExpression, OptionalTypeExpression, ExpressionPosition } from '../expressions';
 export declare class GolangError extends Error {
     message: string;
     location: ExpressionPosition;
@@ -19,6 +19,7 @@ export declare class GolangVisitor extends BaseVisitor {
     visitImportType(expression: ImportTypeExpression): any;
     visitOptionalType(expression: OptionalTypeExpression): any;
     visitRepeatedType(expression: RepeatedTypeExpression): any;
+    visitMapType(expression: MapTypeExpression): any;
     visitAnnotation(expression: AnnotationExpression): any;
 }
 export declare const Meta: Description;

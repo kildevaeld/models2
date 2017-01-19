@@ -4,7 +4,7 @@ export declare enum Token {
     Property = 3,
     Import = 4,
     ImportType = 5,
-    BuildinType = 6,
+    PrimitiveType = 6,
     OptionalType = 7,
     RepeatedType = 8,
     MapType = 9,

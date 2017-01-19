@@ -26,7 +26,7 @@ function generate(generator: Generator, cmd: program.ICommand, files: string[]) 
         console.log('  %s %s', 'create', chalk.green(file))
     })
 
-    generator.generate(template, { output: output }, files)
+    generator.generate(template, { output: output, split: !!cmd['split'] }, files)
         .then(() => console.log('\nYour files has now been created!\n'))
         .catch(e => console.error(e));
 
@@ -49,6 +49,7 @@ export async function run() {
         .command('gen')
         .option("-t, --template <template>", 'use templates')
         .option("-o, --output <path>", "out")
+        .option("-s, --split", "")
         .arguments('<files...>').action((files) => {
             generate(generator, genCmd, files);
         });
