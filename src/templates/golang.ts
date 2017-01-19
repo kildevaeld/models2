@@ -134,6 +134,7 @@ export class GolangVisitor extends BaseVisitor {
         }
         return out;
     }
+
     visitRecord(expression: RecordExpression): any {
 
         this.gotags = [];
@@ -181,6 +182,7 @@ export class GolangVisitor extends BaseVisitor {
         return `${comment}${ucFirst(name)} `
             + (isPointer ? '*' : '') + type + " " + tags
     }
+
     visitType(expression: TypeExpression): any {
         switch (expression.type) {
             case Type.Date:
@@ -191,15 +193,25 @@ export class GolangVisitor extends BaseVisitor {
             default: return Type[expression.type].toLowerCase();
         }
     }
+
     visitImportType(expression: ImportTypeExpression): any {
         return expression.name
     }
+
     visitOptionalType(expression: OptionalTypeExpression): any {
         return this.visit(expression.type);
     }
+
     visitRepeatedType(expression: RepeatedTypeExpression): any {
         return "[]" + this.visit(expression.type);
     }
+
+    visitMapType(expression: MapTypeExpression): any {
+        let key = this.visit(expression.key);
+        let value = this.visit(expression.value);
+        return `map[${key}]${value}`;
+    }
+
     visitAnnotation(expression: AnnotationExpression): any {
         return expression;
     }

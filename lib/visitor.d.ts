@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { Expression, PackageExpression, ImportExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, OptionalTypeExpression } from './expressions';
+import { Expression, PackageExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, OptionalTypeExpression } from './expressions';
 export interface VisitorOptions {
     split: boolean;
     file: string;
@@ -34,11 +34,11 @@ export declare class ValidationError extends Error {
 }
 export interface IVisitor {
     visit(expression: Expression): any;
-    visitImport(expression: ImportExpression): any;
     visitPackage(expression: PackageExpression): any;
     visitRecord(expression: RecordExpression): any;
     visitProperty(expression: PropertyExpression): any;
     visitType(expression: TypeExpression): any;
+    visitImportType(expression: ImportTypeExpression): any;
     visitOptionalType(expression: OptionalTypeExpression): any;
     visitRepeatedType(expression: RepeatedTypeExpression): any;
     visitAnnotation(expression: AnnotationExpression): any;

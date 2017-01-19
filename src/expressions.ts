@@ -148,8 +148,7 @@ export function createExpression(type: Token, position: ExpressionPosition, ...a
         case Token.OptionalType: return Expression.createOptionalType(position, args);
         case Token.ImportType: return Expression.createImportType(position, args);
         case Token.RepeatedType: return Expression.createRepeatedType(position, args);
+        case Token.MapType: return Expression.createMapType(position, args);
         case Token.Annotation: return Expression.createAnnotation(position, args);
     }
 }
-
-

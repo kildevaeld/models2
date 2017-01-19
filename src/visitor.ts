@@ -4,9 +4,9 @@ import * as _ from 'lodash';
 
 import { Token } from './tokens';
 import * as Parser from './models';
-import {Expression, PackageExpression, ImportExpression, RecordExpression, 
-    AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, 
-    RepeatedTypeExpression, OptionalTypeExpression } from './expressions';
+import {Expression, PackageExpression, ImportExpression, RecordExpression,
+    AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression,
+    RepeatedTypeExpression, OptionalTypeExpression, MapTypeExpression } from './expressions';
 
 
 
@@ -46,22 +46,23 @@ export class ValidationError extends Error {
 
 export interface IVisitor {
     visit(expression: Expression): any;
-    visitImport(expression: ImportExpression): any;
+    //visitImport(expression: ImportExpression): any;
     visitPackage(expression: PackageExpression): any;
     visitRecord(expression: RecordExpression): any;
     visitProperty(expression: PropertyExpression): any;
     visitType(expression: TypeExpression): any;
-    //visitImportType(expression: ImportTypeExpression): any;
+    visitImportType(expression: ImportTypeExpression): any;
     visitOptionalType(expression: OptionalTypeExpression): any;
     visitRepeatedType(expression: RepeatedTypeExpression): any;
-    visitAnnotation(expression: AnnotationExpression): any 
+    visitMapType(expression: MapTypeExpresssion): any;
+    visitAnnotation(expression: AnnotationExpression): any
 }
 
 export abstract class BaseVisitor implements IVisitor {
 
     constructor(public options?: VisitorOptions) { }
 
-   
+
     visit(expression: Expression): any {
 
         switch(expression.nodeType) {
@@ -73,6 +74,7 @@ export abstract class BaseVisitor implements IVisitor {
             case Token.ImportType: return this.visitImportType(expression as ImportTypeExpression);
             case Token.OptionalType: return this.visitOptionalType(expression as OptionalTypeExpression);
             case Token.RepeatedType: return this.visitRepeatedType(expression as RepeatedTypeExpression);
+            case Token.MapType: return this.visitMapType(expression as MapTypeExpression);
             case Token.Annotation: return this.visitAnnotation(expression as AnnotationExpression);
         }
 
@@ -86,6 +88,7 @@ export abstract class BaseVisitor implements IVisitor {
     abstract visitImportType(expression: ImportTypeExpression): any;
     abstract visitOptionalType(expression: OptionalTypeExpression): any;
     abstract visitRepeatedType(expression: RepeatedTypeExpression): any;
+    abstract visitMapType(expression: MapTypeExpression): any;
     abstract visitAnnotation(expression: AnnotationExpression): any
 
 }
@@ -119,31 +122,31 @@ export class Preprocessor {
                 children.push(child)
                 continue
             }
-    
+
             e.imports.push(await this.import(child as ImportExpression));
         }
         e.children = children;
-        
+
         return e;
     }
 
     private detectCircularDependencies(path: string) {
         if (this.previousParent == path) {
             let e = `circle dependencies detected: ${Path.basename(path)} and ${Path.basename(this.parent)} depends on eachother`;
-            throw new Error(e);   
+            throw new Error(e);
         }
         this.previousParent = this.parent
         this.parent = path;
     }
 
     private async import(item: ImportExpression): Promise<PackageExpression> {
-        
+
         let path = Path.resolve(item.path + ".record");
         this.detectCircularDependencies(path);
 
 
         let data = await fs.readFile(path);
-        
+
         let ast: PackageExpression = Parser.parse(data.toString());
         if (!(ast instanceof PackageExpression)) {
             throw Error('ERROR');
@@ -155,10 +158,11 @@ export class Preprocessor {
 
     private getInner(exp: PropertyExpression) {
         switch (exp.type.nodeType) {
-            case Token.ImportType: 
+            case Token.ImportType:
+            case Token.MapType:
             case Token.BuildinType: return exp.type;
             default: return this.getInner(exp.type as PropertyExpression);
-        } 
+        }
     }
 
     private validateImportTypes(item: PackageExpression) {
@@ -176,7 +180,7 @@ export class Preprocessor {
                 };
                 return null
             }).filter(m => m !== null &&  m.prop.nodeType == Token.ImportType)
-            
+
 
             for (let prop of importTypes) {
                 let found = !!imports.find(m => m[0] == prop.prop.packageName && m[1] == prop.prop.name);
@@ -205,7 +209,7 @@ export class Preprocessor {
             return m.children.filter( mm => mm.nodeType == Token.Record).map( mm => [m.name, (mm as RecordExpression).name]);
         });
         return _.flatten(imports);
-    
+
     }
 
 }

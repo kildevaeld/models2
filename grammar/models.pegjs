@@ -5,7 +5,7 @@
 	var Type = tokens.Type;
 	var lodash = require('lodash');
   var createExpression = require('./expressions').createExpression;
-  
+
   function extractList(list, index) {
     return list.map(function(element) { return element[index]; });
   }
@@ -38,9 +38,9 @@ Program
     return expression(Token.Package, p, body)
   }
 
-Elements 
+Elements
   = head:(__ Import)? __ tail:Body? __ {
-    
+
     return (head||[null]).slice(1).concat(tail)
   }
 
@@ -52,19 +52,19 @@ Import
 		return expression(Token.Import, n.join(''))
 	}
 
-    
-Body 
+
+Body
 	= __ r:Records __ { return r }
 
-Records 
-	= __ recs:(  __ r:Record __ { return r; })+ { return recs; } 
+Records
+	= __ recs:(  __ r:Record __ { return r; })+ { return recs; }
 
 Record
 	= a:(aa:Annotation __ { return aa;})* "record" _+ name:Identifier __ "{" __ body:RecordBody* __ "}" {
 		//return [Token.Record, name, a.concat(body)];
     return expression(Token.Record, name, a, body)
   }
-    
+
 RecordBody
 	= props:(__ p:Property __ { return p; }) {
     	return props
@@ -82,13 +82,13 @@ PropertyType
   / t:Type { return t; }
 
 
-Type 
-	= begin_array t:Type end_array { return expression(Token.RepeatedType, t)} 
+Type
+	= CompositeType
   / t:ImportType { return t; }
 	/ t:PrimitiveType { return expression(Token.BuildinType, t)}
 
-CompositeType 
-  = RepeatedType
+CompositeType
+  = ArrayType
   / MapType
 
 PrimitiveType
@@ -110,11 +110,11 @@ PrimitiveType
   / "bytes" { return Type.Bytes; }
 
 ArrayType
-  = begin_array t:Type end_array { return expression(Token.RepeatedType, t)} 
+  = begin_array t:Type end_array { return expression(Token.RepeatedType, t)}
 
 MapType
-  = "map<" __ k:Type __ "," __ k:Type __ ">" {
-    return expression(Token.MapType, k, t);   
+  = "map<" __ k:Type __ "," __ v:Type __ ">" {
+    return expression(Token.MapType, k, v);
   }
 
 ImportType
@@ -134,7 +134,7 @@ Annotation
 Identifier
   = a:([a-zA-Z][a-zA-Z0-9_]+) { return lodash.flatten(a).join(''); }
 
-import_statement 
+import_statement
 	= [a-zA-Z0-9_./]
 
 quote
@@ -149,13 +149,13 @@ double_quote
 semi
 	= ";";
 
-alpha 
+alpha
 	= [a-zA-Z]
 
 num
 	= [0-9]
 
-alphanum 
+alphanum
 	= [a-zA-Z0-9_]
 
 _
