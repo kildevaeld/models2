@@ -4,6 +4,7 @@ export declare class CppVisitor extends BaseVisitor {
     imports: Set<string>;
     package: string;
     gotags: string[];
+    pointer: boolean;
     getAnnotation(exp: AnnotationExpression[], name: string): any;
     parse(expression: PackageExpression): Promise<Result[]>;
     visitPackage(expression: PackageExpression): any;

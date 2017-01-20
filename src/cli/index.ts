@@ -32,6 +32,12 @@ function generate(generator: Generator, cmd: program.ICommand, files: string[]) 
 
 }
 
+function generateHelp(generator: Generator, cmd: program.ICommand, template:string) {
+    let t = generator.buildins.find(m => m.name == template);
+
+    console.log(t.annotations)
+}
+
 
 export async function run() {
 
@@ -62,6 +68,12 @@ export async function run() {
                     console.log(JSON.stringify(ast, null, 2))
                 }).catch(e => console.log(e))
         })
+
+    let helpCmd = program
+        .command('help <template>')
+        .action((template) => {
+            generateHelp(generator, helpCmd, template);
+        });
 
     program.parse(process.argv);
 

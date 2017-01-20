@@ -1,6 +1,7 @@
 package models;
 
 import "address";
+
 @doc("Person is the head of state")
 @gotags(["json","msgpack"])
 record Person {
@@ -9,6 +10,7 @@ record Person {
     name: string;
     @swift("desc")
     description: string;
+    @cpppointer
     @gotags({"json":"ADRRESS"})
     address: models.Address;
 }

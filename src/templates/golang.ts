@@ -224,7 +224,7 @@ export const Meta: Description = {
                 arguments: '[string]|{key:string}'
             },
             gopointer: {
-                arguments: "void"
+                arguments: "boolean"
             },
             doc: {
                 arguments: "string"

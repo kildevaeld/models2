@@ -15,7 +15,11 @@ namespace {{namespace}} {
 {{name}}::{{name}} &operator=(const {{name}} &other) {
   if (&other != this) {
 {{#each properties}}
-    m_{{name}} = other.{{name}};
+{{#if pointer}}
+  m_{{name}}.swap(other.m_{{name}})
+{{else}}
+  m_{{name}} = other.m_{{name}};
+{{/if}}
 {{/each}}
   }
 
@@ -26,10 +30,19 @@ namespace {{namespace}} {
 
 // Properties
 {{#each properties}}
-
+{{! Gettters}}
+{{#if pointer}}
+std::shared_ptr<{{type}}> {{../name}}::{{name}}() const { return m_{{name}}; }
+{{else}}
 {{{type}}} {{../name}}::{{name}}() const { return m_{{name}}; }
+{{/if}}
+{{! Setters}}
 {{#if ref}}
 void {{../name}}::set_{{name}}(const {{{type}}} &{{name}}) { m_{{name}} = name; }
+{{else if pointer}}
+void {{../name}}::set_{{name}}(std::shared_ptr<{{{type}}}> {{name}} name) { 
+  m_{{name}} = name;
+}
 {{else}}
 void {{../name}}::set_{{name}}({{{type}}} {{name}}) { m_{{name}} = name; }
 {{/if}}

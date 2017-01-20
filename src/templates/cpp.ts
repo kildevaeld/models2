@@ -13,6 +13,7 @@ import * as Path from 'path';
 import * as hbs from 'handlebars';
 
 
+
 interface ParseResult {
     namespace: string;
     imports: string[];
@@ -21,24 +22,29 @@ interface ParseResult {
 }
 
 function recordToString(input, sourceTemplate: HandlebarsTemplateDelegate, headerTemplate: HandlebarsTemplateDelegate) {
+    input.imports.sort((a,b) => {
+        let ab = a[0] == '<', bb =  b[0] == "<", e = ab === bb;
+        return e ? ab[1] > bb[1] : ab < bb;
+    })
+    
     let header = headerTemplate(input),
         source = sourceTemplate(input);
 
     return [
-        {name: input.filename + '.cpp', data: new Buffer(source)},
-        {name: input.filename + '.h', data: new Buffer(header)}
+        { name: input.filename + '.cpp', data: new Buffer(source) },
+        { name: input.filename + '.h', data: new Buffer(header) }
     ]
-    
+
 }
 
- export class CppVisitor extends BaseVisitor {
+export class CppVisitor extends BaseVisitor {
     imports: Set<string>;
     package: string;
     gotags: string[]
-
-    getAnnotation(exp:AnnotationExpression[], name:string) {
+    pointer: boolean;
+    getAnnotation(exp: AnnotationExpression[], name: string) {
         let annotation = exp.find(m => m.name === name);
-        return annotation ? annotation.args : null;
+        return annotation ? (annotation.args != null ? annotation.args : true) : null;
     }
 
     async parse(expression: PackageExpression): Promise<Result[]> {
@@ -53,7 +59,7 @@ function recordToString(input, sourceTemplate: HandlebarsTemplateDelegate, heade
 
         let output: Result[];
         if (this.options.split) {
-            let records = result.records.map( m => {
+            let records = result.records.map(m => {
                 return {
                     name: m.name,
                     filename: m.filename,
@@ -62,12 +68,12 @@ function recordToString(input, sourceTemplate: HandlebarsTemplateDelegate, heade
                     imports: m.imports
                 }
             })
-        
-            output = _.flatten(records.map( m => recordToString(m, sourceTemplate, headerTemplate)));
+
+            output = _.flatten(records.map(m => recordToString(m, sourceTemplate, headerTemplate)));
         } else {
             result.imports = [...arrayToSet(...result.records.map(m => m.imports))];
             output = recordToString(result, sourceTemplate, headerTemplate);
-            
+
         }
         return output
     }
@@ -77,13 +83,13 @@ function recordToString(input, sourceTemplate: HandlebarsTemplateDelegate, heade
 
         this.package = expression.name;
         let records = expression.children
-        .filter(m => m.nodeType == Token.Record).map( m => this.visit(m));
+            .filter(m => m.nodeType == Token.Record).map(m => this.visit(m));
 
         return {
             namespace: this.package,
             imports: [],
             records: records,
-            filename: this.options.file.replace('.cpp','')
+            filename: this.options.file.replace('.cpp', '')
         }
     }
 
@@ -91,8 +97,9 @@ function recordToString(input, sourceTemplate: HandlebarsTemplateDelegate, heade
         this.imports = new Set();
         return {
             name: expression.name,
+            pod: false,
             comment: this.getAnnotation(expression.annotations, 'doc'),
-            properties: expression.properties.map( m => this.visit(m)),
+            properties: expression.properties.map(m => this.visit(m)),
             imports: [...this.imports],
             filename: expression.name.toLowerCase(),
             namespace: this.package,
@@ -100,39 +107,49 @@ function recordToString(input, sourceTemplate: HandlebarsTemplateDelegate, heade
 
     }
     visitProperty(expression: PropertyExpression): any {
+        this.pointer = !!this.getAnnotation(expression.annotations, 'cpppointer')
+
+        let type = this.visit(expression.type)
+        type.pointer = this.pointer;
+        if (this.pointer) {
+            //type.type += '*';
+            type.ref = false;
+            this.imports.add('<memory>')
+        }
+
         return _.extend({
             name: expression.name,
             comment: this.getAnnotation(expression.annotations, 'doc')
-        }, this.visit(expression.type));
+        }, type);
     }
 
     visitType(expression: TypeExpression): any {
         switch (expression.type) {
-            case Type.String: 
+            case Type.String:
                 this.imports.add('<string>');
-                return {type:"std::string", ref:true};
-            case Type.Boolean: return {type:"bool", ref:false};
-            case Type.Bytes: 
+                return { type: "std::string", ref: true };
+            case Type.Boolean: return { type: "bool", ref: false };
+            case Type.Bytes:
                 this.imports.add('<string>');
-                return {type:"std::string", ref:true};
+                return { type: "std::string", ref: true };
             case Type.Float:
             case Type.Double:
             case Type.Int:
-                return {type: Type[expression.type].toLowerCase(),ref:false};
+                return { type: Type[expression.type].toLowerCase(), ref: false };
             case Type.Uint:
-                return {type: 'unsigned int', ref:false};
+                return { type: 'unsigned int', ref: false };
             case Type.Date:
                 this.imports.add('<ctime>');
-                return {type: 'time_t', ref: false};
-            default: return {type:"unimplemented", ref: false};
+                return { type: 'time_t', ref: false };
+            default: return { type: "unimplemented", ref: false };
         }
     }
 
     visitImportType(expression: ImportTypeExpression): any {
         let file = (this.options.split ? expression.name.toLowerCase() + '.h' : expression.packageName + '.h');
         this.imports.add(`"${file}"`);
-        
-        return {name:expression.name,ref:true};
+
+        return { type: expression.name, ref: true };
     }
 
     visitOptionalType(expression: OptionalTypeExpression): any {
@@ -141,7 +158,7 @@ function recordToString(input, sourceTemplate: HandlebarsTemplateDelegate, heade
 
     visitRepeatedType(expression: RepeatedTypeExpression): any {
         this.imports.add("<vector>");
-        return  {type:`std::vector<${this.visit(expression.type).type}>`,ref:true};
+        return { type: `std::vector<${this.visit(expression.type).type}>`, ref: true };
     }
 
     visitMapType(expression: MapTypeExpression): any {
@@ -165,19 +182,16 @@ export const Meta: Description = {
     extname: ".cpp",
     annotations: {
         records: {
-            gotags: {
-                arguments: '[string]|string'
+            pod: {
+                arguments: 'boolean'
             },
             doc: {
                 arguments: "string"
             }
         },
         properties: {
-            gotags: {
-                arguments: '[string]|{key:string}'
-            },
-            gopointer: {
-                arguments: "void"
+            cpppointer: {
+                arguments: "boolean"
             },
             doc: {
                 arguments: "string"
