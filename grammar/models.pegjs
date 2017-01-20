@@ -20,14 +20,7 @@
     var type = args.shift();
     return createExpression.apply(null, [type, location()].concat(args));
   }
-
 }
-
-
-/*Expression
-  = __ p:Package __ i:(__ i:Import __ { return i;})* __  b:Body? {
-		return p.concat([i.concat(b)]);
-  }*/
 
 start
   = program:Program { return program; }
@@ -110,7 +103,7 @@ PrimitiveType
   / "bytes" { return Type.Bytes; }
 
 ArrayType
-  = begin_array t:Type end_array { return expression(Token.RepeatedType, t)}
+  = "[" ws t:Type ws "]" { return expression(Token.RepeatedType, t)}
 
 MapType
   = "map<" __ k:Type __ "," __ v:Type __ ">" {
@@ -124,10 +117,10 @@ ImportType
 
 
 Annotation
-	= "@" a:Identifier "(" o:JSON_text ")" {
+	= "@" a:Identifier "(" o:Argument ")" {
     return expression(Token.Annotation, a, o);
   }
-	/ "@" a:Identifier { return expression(Token.Annotation, a, null); }
+	/ "@" a:Identifier { return expression(Token.Annotation, a, true); }
 
 
 
@@ -158,41 +151,84 @@ num
 alphanum
 	= [a-zA-Z0-9_]
 
+ws "whitespace" = [ \t\n\r]*
+
 _
 	= [ \t\n\r]
 
-_m "whitespace"
-  = [ \t\n\r]*
+__
+  = (WhiteSpace / LineTerminatorSequence / Comment)*
+
+// Commenrts
+
+SourceCharacter
+  = .
+
+Zs = [\u0020\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]
 
 
+WhiteSpace "whitespace"
+  = "\t"
+  / "\v"
+  / "\f"
+  / " "
+  / "\u00A0"
+  / "\uFEFF"
+  / Zs
 
+LineTerminator
+  = [\n\r\u2028\u2029]
 
-JSON_text
-  = ws value:value ws { return value; }
+LineTerminatorSequence "end of line"
+  = "\n"
+  / "\r\n"
+  / "\r"
+  / "\u2028"
+  / "\u2029"
+
+Comment "comment"
+  = MultiLineComment
+  / SingleLineComment
+
+MultiLineComment
+  = "/*" (!"*/" SourceCharacter)* "*/"
+
+MultiLineCommentNoLineTerminator
+  = "/*" (!("*/" / LineTerminator) SourceCharacter)* "*/"
+
+SingleLineComment
+  = "//" (!LineTerminator SourceCharacter)*
+
+// Annotation Arguments
+
+Argument
+  = value:value { return value; }
 
 begin_array     = ws "[" ws
 begin_object    = ws "{" ws
 end_array       = ws "]" ws
 end_object      = ws "}" ws
 name_separator  = ws ":" ws
-value_separator = ws "," ws
+value_separator
+  = ws "," ws
 
-ws "whitespace" = [ \t\n\r]*
-
-// ----- 3. Values -----
+values
+  = a:value ws rest:(ws value_separator ws value:value ws{ return value;})* { return [a].concat(rest); }
 
 value
-  = false
-  / null
-  / true
-  / object
-  / array
-  / number
-  / string
+    = false
+    / null
+    / true
+    / object
+    / array
+    / number
+    / string
+
 
 false = "false" { return false; }
 null  = "null"  { return null;  }
 true  = "true"  { return true;  }
+
 
 // ----- 4. Objects -----
 
@@ -215,9 +251,13 @@ object
     { return members !== null ? members: {}; }
 
 member
-  = name:string name_separator value:value {
+  = name:member_key name_separator value:value {
       return { name: name, value: value };
     }
+
+member_key
+    = string
+    / Identifier
 
 // ----- 5. Arrays -----
 
@@ -231,8 +271,7 @@ array
     end_array
     { return values !== null ? values : []; }
 
-// ----- 6. Numbers -----
-
+// Numbers
 number "number"
   = minus? int frac? exp? { return parseFloat(text()); }
 
@@ -300,44 +339,3 @@ unescaped
 // See RFC 4234, Appendix B (http://tools.ietf.org/html/rfc4234).
 DIGIT  = [0-9]
 HEXDIG = [0-9a-f]i
-
-__
-  = (WhiteSpace / LineTerminatorSequence / Comment)*
-
-SourceCharacter
-  = .
-
-Zs = [\u0020\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]
-
-
-WhiteSpace "whitespace"
-  = "\t"
-  / "\v"
-  / "\f"
-  / " "
-  / "\u00A0"
-  / "\uFEFF"
-  / Zs
-
-LineTerminator
-  = [\n\r\u2028\u2029]
-
-LineTerminatorSequence "end of line"
-  = "\n"
-  / "\r\n"
-  / "\r"
-  / "\u2028"
-  / "\u2029"
-
-Comment "comment"
-  = MultiLineComment
-  / SingleLineComment
-
-MultiLineComment
-  = "/*" (!"*/" SourceCharacter)* "*/"
-
-MultiLineCommentNoLineTerminator
-  = "/*" (!("*/" / LineTerminator) SourceCharacter)* "*/"
-
-SingleLineComment
-  = "//" (!LineTerminator SourceCharacter)*
