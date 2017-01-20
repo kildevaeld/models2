@@ -1,0 +1,2 @@
+string|number
+|boolean|{name:boolean;age:string}|[string]
