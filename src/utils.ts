@@ -15,3 +15,17 @@ export function isStringArray(a: any): a is string[] {
     }, 0) == a.length;
 
 }
+
+export function ucFirst(name: string) {
+    return name[0].toUpperCase() + name.substr(1)
+}
+
+export function arrayToSet(...arrays: string[]) {
+    let out = new Set<string>()
+    for (let array of arrays) {
+        for (let item of array) {
+            out.add(item)
+        }
+    }
+    return out;
+}

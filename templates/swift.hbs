@@ -1,6 +1,7 @@
 
 import Foundation
 
+
 {{#each records ~}}
 class {{capitalize name}}{{#if extends~}}: {{extends}}{{~/if}} {
 {{#each properties}}

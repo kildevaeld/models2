@@ -1,0 +1,40 @@
+
+#include "{{filename}}.h"
+
+namespace {{namespace}} { 
+
+{{#each records}}
+
+{{name}}::{{name}}() { }
+
+{{name}}::{{name}}(const {{name}} &other): {{#each properties}}
+  m_{{name}}(other.{{name}}){{#unless @last}},{{/unless}}{{/each}} {
+
+}
+
+{{name}}::{{name}} &operator=(const {{name}} &other) {
+  if (&other != this) {
+{{#each properties}}
+    m_{{name}} = other.{{name}};
+{{/each}}
+  }
+
+  return *this;
+}
+
+{{name}}::~{{name}} { }
+
+// Properties
+{{#each properties}}
+
+{{{type}}} {{../name}}::{{name}}() const { return m_{{name}}; }
+{{#if ref}}
+void {{../name}}::set_{{name}}(const {{{type}}} &{{name}}) { m_{{name}} = name; }
+{{else}}
+void {{../name}}::set_{{name}}({{{type}}} {{name}}) { m_{{name}} = name; }
+{{/if}}
+{{/each}}
+
+{{/each}}
+
+}

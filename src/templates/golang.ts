@@ -20,7 +20,6 @@ function ucFirst(name: string) {
 }
 
 
-
 function arrayToSet(...arrays: string[]) {
     let out = new Set<string>()
     for (let array of arrays) {
