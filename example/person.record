@@ -13,6 +13,7 @@ record Person {
     @cpppointer
     @gotags({"json":"ADRRESS"})
     address: models.Address;
+    someting: Something;
 }
 
 record Something {

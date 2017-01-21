@@ -10,8 +10,7 @@ export declare class GolangVisitor extends BaseVisitor {
     package: string;
     gotags: string[];
     parse(expression: PackageExpression): Result[];
-    private generateTags(name, annotations);
-    validateRecordTags(gotags: AnnotationExpression): string[];
+    private generateTags(name, exp);
     visitPackage(expression: PackageExpression): any;
     visitRecord(expression: RecordExpression): any;
     visitProperty(expression: PropertyExpression): any;

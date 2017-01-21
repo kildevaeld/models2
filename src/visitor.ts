@@ -8,7 +8,7 @@ import {
     Expression, PackageExpression, ImportExpression, RecordExpression,
     AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression,
     RepeatedTypeExpression, OptionalTypeExpression, 
-    MapTypeExpression, ExpressionPosition, ImportedPackageExpression
+    MapTypeExpression, ExpressionPosition, ImportedPackageExpression, RecordTypeExpression
 } from './expressions';
 
 
@@ -68,6 +68,7 @@ export interface IVisitor {
     visit(expression: Expression): any;
     //visitImport(expression: ImportExpression): any;
     visitPackage(expression: PackageExpression): any;
+    visitRecordType(expression: RecordTypeExpression): any
     visitRecord(expression: RecordExpression): any;
     visitProperty(expression: PropertyExpression): any;
     visitType(expression: TypeExpression): any;
@@ -90,6 +91,7 @@ export abstract class BaseVisitor implements IVisitor {
             case Token.Record: return this.visitRecord(expression as RecordExpression);
             case Token.Property: return this.visitProperty(expression as PropertyExpression);
             //case Token.Import: return this.visitImport(expression as ImportExpression);
+            case Token.RecordType: return this.visitRecordType(expression as RecordTypeExpression);
             case Token.PrimitiveType: return this.visitType(expression as TypeExpression);
             case Token.ImportType: return this.visitImportType(expression as ImportTypeExpression);
             case Token.OptionalType: return this.visitOptionalType(expression as OptionalTypeExpression);
@@ -98,6 +100,10 @@ export abstract class BaseVisitor implements IVisitor {
             case Token.Annotation: return this.visitAnnotation(expression as AnnotationExpression);
         }
 
+    }
+
+    visitRecordType(expression: RecordTypeExpression): any {
+        return expression.name;
     }
 
     //abstract visitImport(expression: ImportExpression): any;
@@ -207,6 +213,7 @@ export class Preprocessor {
         switch (exp.type.nodeType) {
             case Token.ImportType:
             case Token.MapType:
+            case Token.RecordType:
             case Token.PrimitiveType: return exp.type;
             default: return this.getInner(exp.type as PropertyExpression);
         }
@@ -282,7 +289,7 @@ export class Preprocessor {
         return [];
     }
 
-    private validateImportTypes(item: PackageExpression) {
+    /*private validateImportTypes(item: PackageExpression) {
 
         let imports = this.getImports(item);
         let models = this.getModels(item);
@@ -315,7 +322,7 @@ export class Preprocessor {
             throw new ValidationError("Import error", errors);
         }
 
-    }
+    }*/
 
     private getModels(item: PackageExpression) {
         return item.children.filter(m => m.nodeType == Token.Record) as RecordExpression[];

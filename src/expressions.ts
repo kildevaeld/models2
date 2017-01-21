@@ -40,6 +40,10 @@ export abstract class Expression {
     static createType(position: ExpressionPosition, args: any[]) {
         return new TypeExpression(position, args[0]);
     }
+    
+    static createRecordType(position: ExpressionPosition, args:any[]) {
+        return new RecordTypeExpression(position, args[0]);
+    }
 
     static createOptionalType(position: ExpressionPosition, args: any[]) {
 
@@ -84,7 +88,7 @@ export class ImportExpression extends Expression {
     }
 }
 
-abstract class AnnotatedExpression extends Expression {
+export abstract class AnnotatedExpression extends Expression {
     abstract nodeType: Token;
     constructor(public annotations:AnnotationExpression[]) {
         super();
@@ -116,6 +120,13 @@ export class PropertyExpression extends AnnotatedExpression {
 export class TypeExpression extends Expression {
     nodeType = Token.PrimitiveType;
     constructor(public position: ExpressionPosition, public type: Type) {
+        super();
+    }
+}
+
+export class RecordTypeExpression extends Expression {
+    nodeType = Token.RecordType;
+    constructor(public position: ExpressionPosition, public name: string) {
         super();
     }
 }
@@ -164,6 +175,7 @@ export function createExpression(type: Token, position: ExpressionPosition, ...a
         case Token.Record: return Expression.createRecord(position, args);
         case Token.Property: return Expression.createProperty(position, args);
         case Token.PrimitiveType: return Expression.createType(position, args);
+        case Token.RecordType: return Expression.createRecordType(position, args);
         case Token.OptionalType: return Expression.createOptionalType(position, args);
         case Token.ImportType: return Expression.createImportType(position, args);
         case Token.RepeatedType: return Expression.createRepeatedType(position, args);

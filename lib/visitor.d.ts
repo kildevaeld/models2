@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { Expression, PackageExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, OptionalTypeExpression, MapTypeExpression, ExpressionPosition } from './expressions';
+import { Expression, PackageExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, OptionalTypeExpression, MapTypeExpression, ExpressionPosition, RecordTypeExpression } from './expressions';
 import { Validator } from './options';
 export interface VisitorOptions {
     split: boolean;
@@ -41,6 +41,7 @@ export declare class ValidationError extends Error {
 export interface IVisitor {
     visit(expression: Expression): any;
     visitPackage(expression: PackageExpression): any;
+    visitRecordType(expression: RecordTypeExpression): any;
     visitRecord(expression: RecordExpression): any;
     visitProperty(expression: PropertyExpression): any;
     visitType(expression: TypeExpression): any;
@@ -54,6 +55,7 @@ export declare abstract class BaseVisitor implements IVisitor {
     options: VisitorOptions;
     constructor(options?: VisitorOptions);
     visit(expression: Expression): any;
+    visitRecordType(expression: RecordTypeExpression): any;
     abstract visitPackage(expression: PackageExpression): any;
     abstract visitRecord(expression: RecordExpression): any;
     abstract visitProperty(expression: PropertyExpression): any;
@@ -98,7 +100,6 @@ export declare class Preprocessor {
     private validateModel(record, imports, options?);
     private validateAnnotations(item, options);
     private validateImport(item, imports);
-    private validateImportTypes(item);
     private getModels(item);
     private getImports(item);
 }

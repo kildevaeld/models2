@@ -71,7 +71,7 @@ function generate(generator: Generator, cmd: program.ICommand, files: string[]) 
 
     generator.generate(template, { output: output, split: !!cmd['split'] }, files)
         .then(() => console.log('\nYour files has now been created!\n'))
-        .catch(e => console.error(e.toJSON()));
+        .catch(e => console.error(e));
 
 }
 
@@ -89,6 +89,7 @@ function generateHelp(generator: Generator, cmd: program.ICommand, template:stri
     }
     
 }
+
 
 
 export async function run() {

@@ -78,7 +78,8 @@ PropertyType
 Type
 	= CompositeType
   / t:ImportType { return t; }
-	/ t:PrimitiveType { return expression(Token.PrimitiveType, t)}
+	/ t:PrimitiveType { return expression(Token.PrimitiveType, t) }
+  / t:Identifier { return expression(Token.RecordType, t) }
 
 CompositeType
   = ArrayType

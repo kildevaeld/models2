@@ -9,6 +9,7 @@ export declare enum Token {
     RepeatedType = 8,
     MapType = 9,
     Annotation = 10,
+    RecordType = 11,
 }
 export declare enum Modifier {
     Optional = 0,

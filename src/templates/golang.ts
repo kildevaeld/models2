@@ -6,7 +6,8 @@ import { isString, isStringArray } from '../utils';
 import {
     Expression, PackageExpression, RecordExpression,
     AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression,
-    RepeatedTypeExpression, MapTypeExpression, OptionalTypeExpression, ExpressionPosition
+    RepeatedTypeExpression, MapTypeExpression, OptionalTypeExpression, 
+    ExpressionPosition, AnnotatedExpression
 } from '../expressions';
 
 export class GolangError extends Error {
@@ -78,17 +79,13 @@ export class GolangVisitor extends BaseVisitor {
         return toString(out)
     }
 
-    private generateTags(name: string, annotations: AnnotationExpression[]) {
-        let gotags: any = this.gotags
-        let gotagsAnnotation = annotations.find(m => m.name == 'gotags');
-        if (gotagsAnnotation) {
-            gotags = gotagsAnnotation.args
-        }
-
+    private generateTags(name: string, exp: AnnotatedExpression) {
+        let gotags: any = exp.get('gotags')||this.gotags;
+        
         let tagStr = '';
         if (gotags) {
             if (isStringArray(gotags)) {
-                gotags = gotags.map(m => `${m}:"${name.toLowerCase()},omitempty"`);
+                gotags = gotags.map(m => `${m}:"${name},omitempty"`);
             } else if (typeof gotags === 'object') {
                 let tmp = [];
                 for (let key in gotags) {
@@ -102,16 +99,6 @@ export class GolangVisitor extends BaseVisitor {
         }
 
         return tagStr;
-    }
-
-    validateRecordTags(gotags: AnnotationExpression): string[] {
-        if (!isStringArray(gotags.args) && !isString(gotags.args)) {
-            throw new GolangError("gotags annotation on a record must be an array of string or a string", gotags.position)
-        } else if (isString(gotags.args)) {
-            return [gotags.args];
-        }
-
-        return gotags.args;
     }
 
 
@@ -128,15 +115,15 @@ export class GolangVisitor extends BaseVisitor {
 
         this.gotags = [];
         this.imports = new Set();
-        let annotations = expression.annotations;
+        
 
-        let gotags = annotations.find(m => m.name == 'gotags');
+        let gotags = expression.get('gotags')
         if (gotags) {
-            this.gotags = this.validateRecordTags(gotags);
+            this.gotags = Array.isArray(gotags) ? gotags : [gotags];
         }
 
-        let comment: any = annotations.find(m => m.name == 'doc');
-        comment = comment ? '// ' + comment.args + '\n' : ''
+        let comment: any = expression.get('doc');
+        comment = comment ? '// ' + comment + '\n' : ''
 
         let properties = [];
         for (let property of expression.properties) {
@@ -158,14 +145,13 @@ export class GolangVisitor extends BaseVisitor {
 
     }
     visitProperty(expression: PropertyExpression): any {
-        let annotations = expression.annotations;
-
+        
         let name = expression.name;
-        let tags = this.generateTags(name, annotations);
+        let tags = this.generateTags(name, expression);
         let type = this.visit(expression.type);
-        let isPointer = !!annotations.find(m => m.name == 'gopointer')
-        let comment: any = annotations.find(m => m.name == 'doc');
-        comment = comment ? '// ' + comment.args + '\n' + Indention : ''
+        let isPointer = !!expression.get("gopointer")
+        let comment: any = expression.get('doc');
+        comment = comment ? '// ' + comment + '\n' + Indention : ''
 
 
         return `${comment}${ucFirst(name)} `

@@ -16,6 +16,7 @@ export declare abstract class Expression {
     static createRecord(position: ExpressionPosition, args: any[]): RecordExpression;
     static createProperty(position: ExpressionPosition, args: any[]): PropertyExpression;
     static createType(position: ExpressionPosition, args: any[]): TypeExpression;
+    static createRecordType(position: ExpressionPosition, args: any[]): RecordTypeExpression;
     static createOptionalType(position: ExpressionPosition, args: any[]): OptionalTypeExpression;
     static createImportType(position: ExpressionPosition, args: any[]): ImportTypeExpression;
     static createRepeatedType(position: ExpressionPosition, args: any[]): RepeatedTypeExpression;
@@ -27,8 +28,11 @@ export declare class PackageExpression extends Expression {
     name: string;
     children: Expression[];
     nodeType: Token;
-    imports: PackageExpression[];
+    imports: ImportedPackageExpression[];
     constructor(position: ExpressionPosition, name: string, children: Expression[]);
+}
+export declare class ImportedPackageExpression extends PackageExpression {
+    fileName: string;
 }
 export declare class ImportExpression extends Expression {
     position: ExpressionPosition;
@@ -36,18 +40,22 @@ export declare class ImportExpression extends Expression {
     nodeType: Token;
     constructor(position: ExpressionPosition, path: string);
 }
-export declare class RecordExpression extends Expression {
+export declare abstract class AnnotatedExpression extends Expression {
+    annotations: AnnotationExpression[];
+    abstract nodeType: Token;
+    constructor(annotations: AnnotationExpression[]);
+    get(name: string): string;
+}
+export declare class RecordExpression extends AnnotatedExpression {
     position: ExpressionPosition;
     name: string;
-    annotations: AnnotationExpression[];
     properties: PropertyExpression[];
     nodeType: Token;
     constructor(position: ExpressionPosition, name: string, annotations: AnnotationExpression[], properties: PropertyExpression[]);
 }
-export declare class PropertyExpression extends Expression {
+export declare class PropertyExpression extends AnnotatedExpression {
     position: ExpressionPosition;
     name: string;
-    annotations: AnnotationExpression[];
     type: Expression;
     nodeType: Token;
     constructor(position: ExpressionPosition, name: string, annotations: AnnotationExpression[], type: Expression);
@@ -57,6 +65,12 @@ export declare class TypeExpression extends Expression {
     type: Type;
     nodeType: Token;
     constructor(position: ExpressionPosition, type: Type);
+}
+export declare class RecordTypeExpression extends Expression {
+    position: ExpressionPosition;
+    name: string;
+    nodeType: Token;
+    constructor(position: ExpressionPosition, name: string);
 }
 export declare class OptionalTypeExpression extends Expression {
     position: ExpressionPosition;
