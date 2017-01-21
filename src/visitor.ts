@@ -7,7 +7,8 @@ import * as Parser from './models';
 import {
     Expression, PackageExpression, ImportExpression, RecordExpression,
     AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression,
-    RepeatedTypeExpression, OptionalTypeExpression, MapTypeExpression, ExpressionPosition
+    RepeatedTypeExpression, OptionalTypeExpression, 
+    MapTypeExpression, ExpressionPosition, ImportedPackageExpression
 } from './expressions';
 
 
@@ -165,7 +166,7 @@ export class Preprocessor {
                 children.push(child)
                 continue
             }
-
+            
             e.imports.push(await this.import(child as ImportExpression));
         }
         e.children = children;
@@ -182,7 +183,7 @@ export class Preprocessor {
         this.parent = path;
     }
 
-    private async import(item: ImportExpression): Promise<PackageExpression> {
+    private async import(item: ImportExpression): Promise<ImportedPackageExpression> {
 
         let path = Path.resolve(item.path + ".record");
         this.detectCircularDependencies(path);
@@ -195,7 +196,10 @@ export class Preprocessor {
             throw Error('ERROR');
         }
 
-        return await this.parse(ast);
+        let p: ImportedPackageExpression = await this.parse(ast);
+        p.fileName = path;
+
+        return p;
 
     }
 

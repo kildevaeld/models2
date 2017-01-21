@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 require('../lib/cli').run()
 .catch(e => {
-    //console.log('rarparap',e.toJSON())
+    console.error(e)
 })

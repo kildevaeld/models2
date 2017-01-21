@@ -65,11 +65,15 @@ export abstract class Expression {
 
 export class PackageExpression extends Expression {
     nodeType = Token.Package;
-    imports: PackageExpression[];
+    imports: ImportedPackageExpression[];
     constructor(public position: ExpressionPosition, public name: string, public children: Expression[]) {
         super();
     }
 
+}
+
+export class ImportedPackageExpression extends PackageExpression {
+    fileName: string;
 }
 
 export class ImportExpression extends Expression {
