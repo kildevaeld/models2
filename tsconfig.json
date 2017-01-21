@@ -10,12 +10,6 @@
         "noUnusedParameters": true
     },
     "compileOnSave": false,
-    /*"files": [
-        "src/index.ts",
-        "src/visitor.ts",
-        "src/buildins/json.ts",
-        "src/buildins/ts.ts"
-    ]*/
     "include": [
         "src/**/*.ts"
     ]

@@ -27,15 +27,24 @@ start
 
 
 Program
-  = __ p:Package __ body:Elements? {
+  = __ p:Package __ body:Elements? __ {
     return expression(Token.Package, p, body)
   }
 
-Elements
+/*Elements
   = head:(__ Import)? __ tail:Body? __ {
 
     return (head||[null]).slice(1).concat(tail)
+  }*/
+Elements
+  = head:Element rest:(ws e:Element { return e; })* {
+    return [head].concat(rest);
   }
+
+Element
+  = r:Record { return r; }
+  / i:Import { return i; }
+  / s:Service { return s; }
 
 Package
   =  __ "package" _+ p:alpha+ __ semi __   { return p.join(''); }
@@ -47,7 +56,7 @@ Import
 
 
 Body
-	= __ r:Records __ { return r }
+	= r:Records { return r }
 
 Records
 	= __ recs:(  __ r:Record __ { return r; })+ { return recs; }
@@ -125,6 +134,56 @@ Annotation
 
 
 
+// Services
+
+Service
+    =  a:(aa:Annotation __ { return aa;})* "service" ws name:Identifier ws "{" ws m:methods ws "}"  {
+        return {name: name, methods:m, annotations:a}
+    }
+
+methods
+    = method 
+
+
+method
+    =  a:(aa:Annotation __ { return aa;})* name:Identifier ws "(" ws m:method_parameter ws ")" ws r:(":" ws r:return_arguments { return r; })? ws  {
+        return {name:name, args:m, returns: r, annotations: a};
+    }
+
+method_parameter
+    = i:Type (!":") { return i; }
+    / method_arguments
+
+
+method_arguments
+    = members:(
+        head:method_argument
+        tail:("," ws m:method_argument { return m; })*
+        {
+          var result = {};
+
+          [head].concat(tail).forEach(function(element) {
+            result[element.name] = element.value;
+          });
+
+          return result; //expression(NodeType.TypedObjectType, result);
+        }
+      )? { return members}
+
+method_argument
+    = name:Identifier ws ":" ws value:PropertyType ws {
+        return {name:name, value:value};
+    }
+
+return_arguments
+    =  i:Type { return i }
+    / "(" ws m:method_parameter ws ")" {
+        return m;
+    }
+
+// Service end
+
+
 Identifier
   = a:([a-zA-Z][a-zA-Z0-9_]+) { return lodash.flatten(a).join(''); }
 
@@ -160,7 +219,7 @@ _
 __
   = (WhiteSpace / LineTerminatorSequence / Comment)*
 
-// Commenrts
+// Comments
 
 SourceCharacter
   = .

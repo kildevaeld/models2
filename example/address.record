@@ -1,5 +1,10 @@
 package models;
 
+@desc
+service AddressService {
+    @annotation
+    get(id:string, name:string?): Address
+}
 
 @doc("This is the address")
 @gotags("json")
