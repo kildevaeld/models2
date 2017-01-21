@@ -1,6 +1,6 @@
 {
   var lodash = require('lodash');
-  var lib = require('../lib/options')
+  var lib = require('./expression')
   var NodeType = lib.NodeType,
     PrimitiveType = lib.PrimitiveType,
     createExpression = lib.createExpression;
@@ -53,14 +53,13 @@ typed_object
         head:member
         tail:(";" m:member { return m; })*
         {
-          /*var result = {};
+          var result = {};
 
           [head].concat(tail).forEach(function(element) {
             result[element.name] = element.value;
           });
 
-          return result;**/
-          return expression(NodeType.TypedObjectType, [head].concat(tail));
+          return expression(NodeType.TypedObjectType, result);
         }
       )?
       "}"

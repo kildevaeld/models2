@@ -91,7 +91,7 @@ export class JsonVisitor extends BaseVisitor {
 
 }
 
-export const Meta: Description = {
+/*export const Meta: Description = {
     name: "Json",
     extname: ".json",
     run: (item: Item, options: JSONVisitorOptions): Promise<Result[]> => {
@@ -103,4 +103,4 @@ export const Meta: Description = {
             name: options.file
         }]);
     }
-}
+}*/

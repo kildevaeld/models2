@@ -1,11 +1,13 @@
 
 
-import { Preprocessor, Description, Result } from './visitor'
+import { Preprocessor, Description, Result, PreprocessOptions, AnnotationDescription, AnnotationDescriptions } from './visitor'
+import { Validator } from './options';
 import * as Parser from './models';
 import { EventEmitter } from 'events';
 
 import * as Path from 'path';
 import * as fs from 'mz/fs';
+import * as _ from 'lodash';
 
 function isDescription(a: any): a is Description {
     return typeof a.name === 'string'
@@ -18,9 +20,31 @@ interface Options {
     split: boolean;
 }
 
+function getAnnotationValidations(desc:Description): PreprocessOptions {
+
+
+    let out: PreprocessOptions = {records:{}, properties:{}}
+    for (let key of ['properties', 'records']) {
+        let an:AnnotationDescriptions = desc.annotations[key];
+
+        for (let k in an) {
+            let a: AnnotationDescription = an[k];
+            out[key][k] = Validator.create(a.arguments);
+        }
+
+    }
+
+
+    return out;
+}
+
+interface Entry extends Description {
+    options: PreprocessOptions;
+}
+
 export class Generator extends EventEmitter {
 
-    buildins: Description[] = [];
+    buildins: Entry[] = [];
     preprocessor = new Preprocessor();
     async loadBuildins() {
 
@@ -36,7 +60,7 @@ export class Generator extends EventEmitter {
 
             if (!mod.hasOwnProperty('Meta') || !isDescription(mod.Meta)) continue
 
-            this.buildins.push(mod.Meta);
+            this.buildins.push(_.extend(mod.Meta,{options:getAnnotationValidations(mod.Meta)}));
         }
 
     }
@@ -73,7 +97,7 @@ export class Generator extends EventEmitter {
 
         for (let entry of map) {
             let ast = Parser.parse(entry.data.toString());
-            ast = await this.preprocessor.parse(ast);
+            ast = await this.preprocessor.parse(ast, desc.options);
 
             let result = await desc.run(ast, { split: options.split, file: entry.name.replace('.record', desc.extname) });
 

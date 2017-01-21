@@ -80,18 +80,31 @@ export class ImportExpression extends Expression {
     }
 }
 
-export class RecordExpression extends Expression {
-    nodeType = Token.Record;
-    constructor(public position: ExpressionPosition, public name: string, public annotations: AnnotationExpression[], public properties: PropertyExpression[]) {
+abstract class AnnotatedExpression extends Expression {
+    abstract nodeType: Token;
+    constructor(public annotations:AnnotationExpression[]) {
         super();
+    }
+
+    public get(name: string): string
+    public get<T>(name:string): T {
+        let found = this.annotations.find(m => m.name === name)
+        return found ? found.args : null;
+    }
+}
+
+export class RecordExpression extends AnnotatedExpression {
+    nodeType = Token.Record;
+    constructor(public position: ExpressionPosition, public name: string, annotations: AnnotationExpression[], public properties: PropertyExpression[]) {
+        super(annotations);
 
     }
 }
 
-export class PropertyExpression extends Expression {
+export class PropertyExpression extends AnnotatedExpression {
     nodeType = Token.Property;
-    constructor(public position: ExpressionPosition, public name: string, public annotations: AnnotationExpression[], public type: Expression) {
-        super();
+    constructor(public position: ExpressionPosition, public name: string, annotations: AnnotationExpression[], public type: Expression) {
+        super(annotations);
     }
 
 }
@@ -136,6 +149,8 @@ export class AnnotationExpression extends Expression {
     constructor(public position: ExpressionPosition, public name: string, public args: any) {
         super();
     }
+
+    
 }
 
 export function createExpression(type: Token, position: ExpressionPosition, ...args): Expression {

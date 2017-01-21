@@ -1,5 +1,6 @@
 /// <reference types="node" />
-import { Expression, PackageExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, OptionalTypeExpression } from './expressions';
+import { Expression, PackageExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, OptionalTypeExpression, MapTypeExpression, ExpressionPosition } from './expressions';
+import { Validator } from './options';
 export interface VisitorOptions {
     split: boolean;
     file: string;
@@ -30,7 +31,12 @@ export interface Description {
 export declare class ValidationError extends Error {
     message: string;
     errors: any;
-    constructor(message: string, errors: any);
+    constructor(message: string, errors?: any);
+    toJSON(): {
+        name: string;
+        message: string;
+        errors: any;
+    };
 }
 export interface IVisitor {
     visit(expression: Expression): any;
@@ -41,6 +47,7 @@ export interface IVisitor {
     visitImportType(expression: ImportTypeExpression): any;
     visitOptionalType(expression: OptionalTypeExpression): any;
     visitRepeatedType(expression: RepeatedTypeExpression): any;
+    visitMapType(expression: MapTypeExpression): any;
     visitAnnotation(expression: AnnotationExpression): any;
 }
 export declare abstract class BaseVisitor implements IVisitor {
@@ -54,16 +61,43 @@ export declare abstract class BaseVisitor implements IVisitor {
     abstract visitImportType(expression: ImportTypeExpression): any;
     abstract visitOptionalType(expression: OptionalTypeExpression): any;
     abstract visitRepeatedType(expression: RepeatedTypeExpression): any;
+    abstract visitMapType(expression: MapTypeExpression): any;
     abstract visitAnnotation(expression: AnnotationExpression): any;
+}
+export declare class AnnotationValidationError extends Error {
+    message: string;
+    location: ExpressionPosition;
+    expected: string;
+    found: string;
+    constructor(message: string, location: ExpressionPosition, expected: string, found: string);
+    toJSON(): {
+        name: string;
+        message: string;
+        location: ExpressionPosition;
+        found: string;
+        expected: string;
+    };
+}
+export interface PreprocessOptions {
+    records: {
+        [key: string]: Validator;
+    };
+    properties: {
+        [key: string]: Validator;
+    };
 }
 export declare class Preprocessor {
     parent: string;
     previousParent: string;
-    parse(item: Expression): Promise<PackageExpression>;
+    parse(item: Expression, options?: PreprocessOptions): Promise<PackageExpression>;
     private process(item);
     private detectCircularDependencies(path);
     private import(item);
     private getInner(exp);
+    private validate(item, options?);
+    private validateModel(record, imports, options?);
+    private validateAnnotations(item, options);
+    private validateImport(item, imports);
     private validateImportTypes(item);
     private getModels(item);
     private getImports(item);

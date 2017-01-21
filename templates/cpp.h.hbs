@@ -7,7 +7,12 @@
 namespace {{namespace}} {
 {{#each records}} 
 
-{{#if comment}}//{{comment}}{{/if}}
+{{#if comment}}
+/** 
+    {{name}}
+    {{comment}}
+*/
+{{/if}}
 class {{name}} {
 
 public:
@@ -17,7 +22,9 @@ public:
     ~{{name}}();
 
 {{#each properties}}
-    {{#if comment}}//{{comment}}{{/if}}
+    {{#if comment}}
+    {{> Document}}
+    {{/if}}
     {{#if ref}}
     void set_{{name}}(const {{{type}}} &{{name}});
     {{else if pointer}}

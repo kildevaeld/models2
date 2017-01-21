@@ -24,10 +24,11 @@ gulp.task('grammar', () => {
 		gulp.src('./grammar/models.pegjs')
 		.pipe(peg())
 		.pipe(rename("models.ts"))
-		.pipe(gulp.dest('src'))/*,
-		gulp.src('./grammar/models.pegjs')
+		.pipe(gulp.dest('src')),
+		gulp.src('./grammar/annotation.pegjs')
 		.pipe(peg())
-		.pipe(gulp.dest('lib'))*/
+		.pipe(rename('parser.ts'))
+		.pipe(gulp.dest('src/options'))
 
 	])
 });

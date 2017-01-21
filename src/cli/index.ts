@@ -1,9 +1,52 @@
 
 import * as program from 'commander';
 import { Generator } from '../generator'
+import {Description} from '../visitor'
 import * as chalk from 'chalk';
 const pkg = require('../../package.json');
+import * as hbs from 'handlebars'
+import * as _ from 'lodash'
 
+const helpTemplate = (desc:Description) => {
+
+let o = Object.assign({}, desc, {
+    name: chalk.bold(desc.name)
+    })
+
+_.each(_.values(o.annotations.records), (m) => {
+    m.arguments = chalk.cyan(m.arguments);
+})
+
+_.each(_.values(o.annotations.properties), (m) => {
+    m.arguments = chalk.cyan(m.arguments);
+})
+
+return hbs.compile(`
+Template {{name}}
+
+Records
+{{#each annotations.records}}
+{{#if this.description}}
+  \u001b[1mname:\u001b[22m \u001b[36m{{@key}}\u001b[39m, \u001b[1mparameter:\u001b[22m {{this.arguments}}
+  {{this.description}}
+
+{{else}}
+  \u001b[1mname:\u001b[22m \u001b[36m{{@key}}\u001b[39m, \u001b[1mparameter:\u001b[22m {{this.arguments}}
+{{/if}}
+{{/each}}
+Properties
+{{#each annotations.properties}}
+{{#if this.description}}
+  \u001b[1mname:\u001b[22m \u001b[36m{{@key}}\u001b[39m, \u001b[1mparameter:\u001b[22m {{this.arguments}}
+  {{this.description}}
+
+{{else}}
+  \u001b[1mname:\u001b[22m \u001b[36m{{@key}}\u001b[39m, \u001b[1mparameter:\u001b[22m {{this.arguments}}
+{{/if}}
+{{/each}}
+
+`)(o);
+}
 
 function listTypes(generator: Generator) {
     let gens = generator.buildins;
@@ -28,20 +71,30 @@ function generate(generator: Generator, cmd: program.ICommand, files: string[]) 
 
     generator.generate(template, { output: output, split: !!cmd['split'] }, files)
         .then(() => console.log('\nYour files has now been created!\n'))
-        .catch(e => console.error(e));
+        .catch(e => console.error(e.toJSON()));
 
 }
 
 function generateHelp(generator: Generator, cmd: program.ICommand, template:string) {
     let t = generator.buildins.find(m => m.name == template);
 
-    console.log(t.annotations)
+    if (!t) {
+        console.log('Could not find the template: %s', chalk.bold(template));
+        return;
+    }
+    try {
+        console.log(helpTemplate(t))
+    } catch (e) {
+        console.log(e)
+    }
+    
 }
 
 
 export async function run() {
 
     var generator = new Generator();
+
 
     await generator.loadBuildins();
 

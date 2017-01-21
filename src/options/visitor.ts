@@ -1,48 +1,84 @@
 
-import {NodeType, PrimitiveType, Expression,
+import {
+  NodeType, PrimitiveType, Expression,
   PrimitiveTypeExpression, ArrayTypeExpression, ObjectTypeExpression,
-  TypedObjectTypeExpression, ArgumentExpression} from './expression'
+  TypedObjectTypeExpression, ArgumentExpression
+} from './expression'
 
 
-function isString(a:any): a is string {
+function isString(a: any): a is string {
   return typeof a === 'string';
 }
 
-function isBoolean(a:any): a is boolean {
+function isBoolean(a: any): a is boolean {
   return typeof a === 'boolean';
 }
 
-function isNumber(a:any): a is number {
+function isNumber(a: any): a is number {
   return typeof a === 'number';
 }
 
-interface Checker {
-  (a:any): boolean;
+export interface Checker {
+  (a: any): boolean;
 }
 
 function checkArgument(): (arg) => boolean {
   var slice = Array.prototype.slice;
   var args = slice.call(arguments);
-  return function(arg) {
-    for ( var i = 0, len = args.length; i < len; i++ ) {
-      if (args[i](arg)) return true;
+  return function (arg) {
+     
+    for (var i = 0, len = args.length; i < len; i++) {
+      if (args[i](arg) === true) return true;
     }
     return false;
   }
 }
 
+function check(checkers: Checker[], a: any) {
+  for (let check of checkers) {
+    if (check(a)) return true;
+  }
+  return false;
+}
+
 function checkArray() {
   var slice = Array.prototype.slice;
-  var args = slice.call(arguments);
+  var checkers = slice.call(arguments);
   return function (args) {
-    
+    if (!Array.isArray(args)) return false;
+    for (let a of args) {
+      if (!check(checkers, a)) return false;
+    }
+    return true;
+  }
+}
+
+function checkTypedObject(a: { name: string; type: Expression }) {
+  var slice = Array.prototype.slice;
+  return function (args) {
+    if (typeof args !== 'object') return false;
+  }
+}
+
+function checkObject(...checkers:Checker[]) {
+  return function (args) {
+    if (typeof args !== 'object') return false;
+    for (let key in args) {
+      if (!check(checkers, args[key])) return false
+    }
+    return true;
   }
 }
 
 export class Visitor {
 
-  parse(exp: Expression) {
-    return new Function(`return ${this.visit(exp)}`);
+  parse(exp: Expression): Checker {
+    let out = new Function('o', `return ${this.visit(exp)}`)({
+      checkArgument, checkArray, checkObject, checkTypedObject, 
+      isString, isNumber, isBoolean
+    });
+    
+    return out
   }
 
   visit(exp: Expression) {
@@ -57,26 +93,37 @@ export class Visitor {
 
   visitArgument(exp: ArgumentExpression) {
     let checkers = exp.types.map(m => this.visit(m))
-    return `(${checkArgument.toString()})(${checkers.join(', ')});`
+    return `o.checkArgument(${checkers.join(',')})`;
+    //return `(${checkArgument.toString()})(${checkers.join(',')})`
   }
 
   visitPrimitive(exp: PrimitiveTypeExpression) {
     switch (exp.type) {
-      case PrimitiveType.String: return isString.toString();
+      /*case PrimitiveType.String: return isString.toString();
       case PrimitiveType.Number: return isNumber.toString();
-      case PrimitiveType.Boolean: return isBoolean.toString();
+      case PrimitiveType.Boolean: return isBoolean.toString();*/
+      case PrimitiveType.String: return 'o.isString' //.toString();
+      case PrimitiveType.Number: return 'o.isNumber' //.toString();
+      case PrimitiveType.Boolean: return 'o.isBoolean' //.toString();
     }
   }
 
   visitArray(exp: ArrayTypeExpression) {
-    return ""
+    let checkers = exp.types.map(m => this.visit(m));
+    return `o.checkArray(${checkers.join(',')})`
+
+    //    return `${checkArray.toString()}(${checkers.join(',')})`
   }
 
   visitObject(exp: ObjectTypeExpression) {
-    return ""
+
+    let checkers = exp.types.types.map(m => this.visit(m));
+    return `o.checkObject(${checkers.join(',')})`
+    //return `${checkArray.toString()}(${checkers.join(',')})`
   }
 
-  visitTypedObject(exp:TypedObjectTypeExpression) {
-    return "";
+  visitTypedObject(exp: TypedObjectTypeExpression) {
+    return `checkTypedObject(${exp.properties})`;
+    //return `${checkObject.toString()}(${exp.properties})`;
   }
 }

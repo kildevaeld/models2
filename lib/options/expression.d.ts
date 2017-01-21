@@ -34,21 +34,26 @@ export declare class PrimitiveTypeExpression extends Expression {
 }
 export declare class ArrayTypeExpression extends Expression {
     location: ExpressionPosition;
-    type: Expression[];
+    types: Expression[];
     nodeType: NodeType;
-    constructor(location: ExpressionPosition, type: Expression[]);
+    constructor(location: ExpressionPosition, types: Expression[]);
 }
 export declare class ObjectTypeExpression extends Expression {
     location: ExpressionPosition;
-    key: Expression;
-    value: Expression[];
+    types: ArgumentExpression;
     nodeType: NodeType;
-    constructor(location: ExpressionPosition, key: Expression, value: Expression[]);
+    constructor(location: ExpressionPosition, types: ArgumentExpression);
 }
 export declare class TypedObjectTypeExpression extends Expression {
     location: ExpressionPosition;
-    properties: Expression[];
+    properties: {
+        name: string;
+        type: Expression;
+    };
     nodeType: NodeType;
-    constructor(location: ExpressionPosition, properties: Expression[]);
+    constructor(location: ExpressionPosition, properties: {
+        name: string;
+        type: Expression;
+    });
 }
 export declare function createExpression(type: NodeType, location: ExpressionPosition, ...args: any[]): Expression;

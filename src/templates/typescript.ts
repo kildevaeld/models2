@@ -68,6 +68,7 @@ export class TypescriptVisitor extends BaseVisitor {
 
 }
 
+/*
 export const Meta: Description = {
     name: "Typescript",
     extname: ".ts",
@@ -80,4 +81,4 @@ export const Meta: Description = {
             name: options.file
         }]);
     }
-}
+}*/

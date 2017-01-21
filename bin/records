@@ -1,2 +1,5 @@
 #!/usr/bin/env node
-require('../lib/cli').run();
+require('../lib/cli').run()
+.catch(e => {
+    //console.log('rarparap',e.toJSON())
+})

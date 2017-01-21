@@ -207,21 +207,24 @@ export class GolangVisitor extends BaseVisitor {
 
 }
 
+
 export const Meta: Description = {
     name: "Golang",
     extname: ".go",
     annotations: {
         records: {
             gotags: {
-                arguments: '[string]|string'
+                arguments: '[string]|string',
+                description: "Generate struct tags on all fields"
             },
             doc: {
-                arguments: "string"
+                arguments: "string",
+                description: "Generate documenting comments"
             }
         },
         properties: {
             gotags: {
-                arguments: '[string]|{key:string}'
+                arguments: '[string]|{string}'
             },
             gopointer: {
                 arguments: "boolean"

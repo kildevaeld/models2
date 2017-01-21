@@ -53,7 +53,9 @@ export class CppVisitor extends BaseVisitor {
 
         let sourceBuf = await fs.readFile(Path.resolve(__dirname, "../../templates/cpp.c.hbs"));
         let headerBuf = await fs.readFile(Path.resolve(__dirname, "../../templates/cpp.h.hbs"));
-
+        let docBuf = await fs.readFile(Path.resolve(__dirname, "../../templates/cpp.doc.hbs"));
+        
+        hbs.registerPartial('Document', docBuf.toString());
         let sourceTemplate = hbs.compile(sourceBuf.toString()),
             headerTemplate = hbs.compile(headerBuf.toString());
 
@@ -119,7 +121,7 @@ export class CppVisitor extends BaseVisitor {
 
         return _.extend({
             name: expression.name,
-            comment: this.getAnnotation(expression.annotations, 'doc')
+            comment: expression.get('doc')
         }, type);
     }
 

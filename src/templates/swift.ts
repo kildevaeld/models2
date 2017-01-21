@@ -125,7 +125,7 @@ class SwiftVisitor extends BaseVisitor {
     }
 
 }
-
+/*
 export const Meta: Description = {
     name: "Swift",
     extname: ".swift",
@@ -138,4 +138,4 @@ export const Meta: Description = {
             name: options.file
         }]);
     }
-}
+}*/

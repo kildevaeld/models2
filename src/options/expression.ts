@@ -27,7 +27,7 @@ export abstract class Expression {
     return new ArrayTypeExpression(location, args);
   }
   static createObject(location:ExpressionPosition, args:any[]) {
-    return new ObjectTypeExpression(location, args[0], args[1]);
+    return new ObjectTypeExpression(location, args[0]);
   }
 
   static createTypedObject(location:ExpressionPosition, args:any[]) {
@@ -51,21 +51,21 @@ export class PrimitiveTypeExpression extends Expression {
 
 export class ArrayTypeExpression extends Expression {
   nodeType = NodeType.ArrayType;
-  constructor(public location:ExpressionPosition, public type: Expression[]) {
+  constructor(public location:ExpressionPosition, public types: Expression[]) {
     super();
   }
 }
 
 export class ObjectTypeExpression extends Expression {
   nodeType = NodeType.ObjectType;
-  constructor(public location:ExpressionPosition, public key: Expression, public value:Expression[]) {
+  constructor(public location:ExpressionPosition, public types:ArgumentExpression) {
     super();
   }
 }
 
 export class TypedObjectTypeExpression extends Expression {
   nodeType = NodeType.TypedObjectType;
-  constructor(public location:ExpressionPosition, public properties:Expression[]) {
+  constructor(public location:ExpressionPosition, public properties:{name:string;type:Expression}) {
     super();
   }
 }
