@@ -137,15 +137,22 @@ export const Meta: Description = {
     annotations: {
         records: {
             swiftjson: {
-                arguments: 'boolean'
+                arguments: 'boolean',
+                description: "Generate json init"
+            },
+            doc: {
+                arguments: 'string',
+                description: "Document the record"
             }
         },
         properties: {
             swiftlet: {
-                arguments: 'boolean'
+                arguments: 'boolean',
+                description: "Declare the property as a constant"
             },
             doc: {
-                arguments: 'string'
+                arguments: 'string',
+                description: "Document the property"
             }
         }
     },

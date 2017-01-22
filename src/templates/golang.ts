@@ -219,7 +219,8 @@ export const Meta: Description = {
                 arguments: '[string]|{string}'
             },
             gopointer: {
-                arguments: "boolean"
+                arguments: "boolean",
+                description: "Declare the field as a pointer"
             },
             doc: {
                 arguments: "string"
