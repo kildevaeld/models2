@@ -40,8 +40,8 @@ export abstract class Expression {
     static createType(position: ExpressionPosition, args: any[]) {
         return new TypeExpression(position, args[0]);
     }
-    
-    static createRecordType(position: ExpressionPosition, args:any[]) {
+
+    static createRecordType(position: ExpressionPosition, args: any[]) {
         return new RecordTypeExpression(position, args[0]);
     }
 
@@ -64,6 +64,14 @@ export abstract class Expression {
 
     static createAnnotation(position: ExpressionPosition, args: any[]) {
         return new AnnotationExpression(position, args[0], args[1]);
+    }
+
+    static createService(position: ExpressionPosition, args: any[]) {
+        return new ServiceExpression(position, args[0], args[1], args[2]);
+    }
+
+    static createMethod(position: ExpressionPosition, args: any[]) {
+        return new MethodExpression(position, args[0], args[1], args[2], args[3]);
     }
 }
 
@@ -90,12 +98,12 @@ export class ImportExpression extends Expression {
 
 export abstract class AnnotatedExpression extends Expression {
     abstract nodeType: Token;
-    constructor(public annotations:AnnotationExpression[]) {
+    constructor(public annotations: AnnotationExpression[]) {
         super();
     }
 
     public get(name: string): string
-    public get<T>(name:string): T {
+    public get<T>(name: string): T {
         let found = this.annotations.find(m => m.name === name)
         return found ? found.args : null;
     }
@@ -164,8 +172,20 @@ export class AnnotationExpression extends Expression {
     constructor(public position: ExpressionPosition, public name: string, public args: any) {
         super();
     }
+}
 
-    
+export class MethodExpression extends AnnotatedExpression {
+    nodeType = Token.Method;
+    constructor(public position: ExpressionPosition, public name: string, annotations: AnnotationExpression[], public parameter:Expression, public returns:Expression) {
+        super(annotations);
+    }
+}
+
+export class ServiceExpression extends AnnotatedExpression {
+    nodeType = Token.Service;
+    constructor(public position: ExpressionPosition, public name: string, public annotations: AnnotationExpression[], public methods: MethodExpression[]) {
+        super(annotations);
+    }
 }
 
 export function createExpression(type: Token, position: ExpressionPosition, ...args): Expression {
@@ -181,5 +201,8 @@ export function createExpression(type: Token, position: ExpressionPosition, ...a
         case Token.RepeatedType: return Expression.createRepeatedType(position, args);
         case Token.MapType: return Expression.createMapType(position, args);
         case Token.Annotation: return Expression.createAnnotation(position, args);
+
+        case Token.Service: return Expression.createService(position, args);
+        case Token.Method: return Expression.createMethod(position, args);
     }
 }

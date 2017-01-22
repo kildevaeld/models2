@@ -7,8 +7,9 @@ import * as Parser from './models';
 import {
     Expression, PackageExpression, ImportExpression, RecordExpression,
     AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression,
-    RepeatedTypeExpression, OptionalTypeExpression, 
-    MapTypeExpression, ExpressionPosition, ImportedPackageExpression, RecordTypeExpression
+    RepeatedTypeExpression, OptionalTypeExpression,
+    MapTypeExpression, ExpressionPosition, ImportedPackageExpression, RecordTypeExpression,
+    ServiceExpression, MethodExpression
 } from './expressions';
 
 
@@ -53,11 +54,11 @@ export class ValidationError extends Error {
         return {
             name: this.name,
             message: this.message,
-            errors: this.errors.map( e => {
+            errors: this.errors.map(e => {
                 if (e && typeof e.toJSON === 'function') {
                     return e.toJSON();
                 }
-                return {message:e.message, name: e.name}
+                return { message: e.message, name: e.name }
             })
         };
 
@@ -77,6 +78,9 @@ export interface IVisitor {
     visitRepeatedType(expression: RepeatedTypeExpression): any;
     visitMapType(expression: MapTypeExpression): any;
     visitAnnotation(expression: AnnotationExpression): any
+
+    visitService(expression: ServiceExpression): any;
+    visitMethod(expression: MethodExpression): any;
 }
 
 export abstract class BaseVisitor implements IVisitor {
@@ -98,6 +102,9 @@ export abstract class BaseVisitor implements IVisitor {
             case Token.RepeatedType: return this.visitRepeatedType(expression as RepeatedTypeExpression);
             case Token.MapType: return this.visitMapType(expression as MapTypeExpression);
             case Token.Annotation: return this.visitAnnotation(expression as AnnotationExpression);
+
+            case Token.Service: return this.visitService(expression as ServiceExpression);
+            case Token.Method: return this.visitMethod(expression as MethodExpression);
         }
 
     }
@@ -117,11 +124,19 @@ export abstract class BaseVisitor implements IVisitor {
     abstract visitMapType(expression: MapTypeExpression): any;
     abstract visitAnnotation(expression: AnnotationExpression): any
 
+    visitService(_: ServiceExpression): any {
+
+    }
+
+    visitMethod(_: MethodExpression): any {
+
+    }
+
 }
 
 
 export class AnnotationValidationError extends Error {
-    constructor(public message: string, public location: ExpressionPosition, public expected: string, public found:string) {
+    constructor(public message: string, public location: ExpressionPosition, public expected: string, public found: string) {
         super(message);
         this.name = 'AnnotationValidationError';
     }
@@ -142,13 +157,14 @@ export interface PreprocessOptions {
     properties: { [key: string]: Validator }
 }
 
+// Validate Record types
 export class Preprocessor {
     parent: string;
     previousParent: string
-    async parse(item: Expression, options?:PreprocessOptions) {
+    async parse(item: Expression, options?: PreprocessOptions) {
         let e = await this.process(item)
         //this.validateImportTypes(e);
-        
+
         this.validate(e, options);
         return e;
     }
@@ -172,7 +188,7 @@ export class Preprocessor {
                 children.push(child)
                 continue
             }
-            
+
             e.imports.push(await this.import(child as ImportExpression));
         }
         e.children = children;
@@ -227,7 +243,7 @@ export class Preprocessor {
         for (let model of models) {
             errors.push(...this.validateModel(model, imports, options));
         }
-       
+
         if (errors.length) {
             throw new ValidationError("errors", errors);
         }
@@ -263,7 +279,7 @@ export class Preprocessor {
             if (!checkers[a.name]) {
                 continue;
             }
-            
+
             if (!checkers[a.name].validate(a.args)) {
                 errors.push(new AnnotationValidationError(`Invalid annotation argument for ${a.name} on ${item.name}`, a.position, checkers[a.name].input, typeof a.args));
             }

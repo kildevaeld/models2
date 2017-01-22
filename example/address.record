@@ -4,6 +4,7 @@ package models;
 service AddressService {
     @annotation
     get(id:string, name:string?): Address
+    create(Address): (error:string)
 }
 
 @doc("This is the address")

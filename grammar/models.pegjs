@@ -132,22 +132,23 @@ Annotation
   }
 	/ "@" a:Identifier { return expression(Token.Annotation, a, true); }
 
-
-
 // Services
 
 Service
-    =  a:(aa:Annotation __ { return aa;})* "service" ws name:Identifier ws "{" ws m:methods ws "}"  {
-        return {name: name, methods:m, annotations:a}
+    =  a:(aa:Annotation __ { return aa;})* "service" ws name:Identifier ws "{" ws m:methods* ws "}"  {
+        return expression(Token.Service, name, a, m);
     }
 
 methods
-    = method 
+    = methods:(__ p:method __ { return p; }) {
+    	return methods
+    }
 
 
 method
-    =  a:(aa:Annotation __ { return aa;})* name:Identifier ws "(" ws m:method_parameter ws ")" ws r:(":" ws r:return_arguments { return r; })? ws  {
-        return {name:name, args:m, returns: r, annotations: a};
+    =  a:(aa:Annotation __ { return aa;})* name:Identifier ws "(" ws m:method_parameter ws ")" ws r:(":" ws r:return_arguments { return r; })? ws   {
+        //return {name:name, args:m, returns: r, annotations: a};
+        return expression(Token.Method, name, a, m, r);
     }
 
 method_parameter

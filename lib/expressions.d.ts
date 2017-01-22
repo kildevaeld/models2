@@ -22,6 +22,8 @@ export declare abstract class Expression {
     static createRepeatedType(position: ExpressionPosition, args: any[]): RepeatedTypeExpression;
     static createMapType(position: ExpressionPosition, args: any[]): MapTypeExpression;
     static createAnnotation(position: ExpressionPosition, args: any[]): AnnotationExpression;
+    static createService(position: ExpressionPosition, args: any[]): ServiceExpression;
+    static createMethod(position: ExpressionPosition, args: any[]): MethodExpression;
 }
 export declare class PackageExpression extends Expression {
     position: ExpressionPosition;
@@ -104,5 +106,21 @@ export declare class AnnotationExpression extends Expression {
     args: any;
     nodeType: Token;
     constructor(position: ExpressionPosition, name: string, args: any);
+}
+export declare class MethodExpression extends AnnotatedExpression {
+    position: ExpressionPosition;
+    name: string;
+    parameter: Expression;
+    returns: Expression;
+    nodeType: Token;
+    constructor(position: ExpressionPosition, name: string, annotations: AnnotationExpression[], parameter: Expression, returns: Expression);
+}
+export declare class ServiceExpression extends AnnotatedExpression {
+    position: ExpressionPosition;
+    name: string;
+    annotations: AnnotationExpression[];
+    methods: MethodExpression[];
+    nodeType: Token;
+    constructor(position: ExpressionPosition, name: string, annotations: AnnotationExpression[], methods: MethodExpression[]);
 }
 export declare function createExpression(type: Token, position: ExpressionPosition, ...args: any[]): Expression;

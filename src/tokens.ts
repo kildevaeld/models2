@@ -1,12 +1,11 @@
 
 export enum Token {
     Package = 1, Record, Property, Import, ImportType, PrimitiveType,
-    OptionalType, RepeatedType, MapType, Annotation, RecordType
+    OptionalType, RepeatedType, MapType, Annotation, RecordType,
+    Service, Method
 }
 
-export enum Modifier {
-    Optional, Repeated, Annotation
-}
+
 
 export enum Type {
     String = 1, Date,

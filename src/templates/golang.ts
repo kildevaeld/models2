@@ -1,7 +1,7 @@
 
 import * as Path from 'path'
 import { BaseVisitor, Description, VisitorOptions, Result } from '../visitor';
-import { Type } from '../tokens';
+import { Type , Token} from '../tokens';
 import { isString, isStringArray } from '../utils';
 import {
     Expression, PackageExpression, RecordExpression,
@@ -103,11 +103,14 @@ export class GolangVisitor extends BaseVisitor {
 
 
     visitPackage(expression: PackageExpression): any {
-        let out = [];
+       
         this.package = expression.name;
-        for (let child of expression.children) {
+        /*for (let child of expression.children) {
             out.push(this.visit(child));
-        }
+        }*/
+        let out = expression.children.filter(m => m.nodeType === Token.Record)
+        .map(m => this.visit(m));
+
         return out;
     }
 
