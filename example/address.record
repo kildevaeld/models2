@@ -10,6 +10,7 @@ service AddressService {
 @doc("This is the address")
 @gotags("json")
 @swiftjson
+@swiftextends("Object")
 record Address {
     @swiftlet
     id: string;

@@ -24,7 +24,7 @@ class SwiftVisitor extends BaseVisitor {
     isRealm: boolean;
     async parse(item: PackageExpression) {
         let result = this.visit(item)  //.filter(m => m != null);
-        console.log(result)
+        
         hbsh({handlebars:hbs});
 
         let buffer = await fs.readFile(Path.resolve(__dirname, "../../templates/swift.hbs"));
@@ -73,12 +73,12 @@ class SwiftVisitor extends BaseVisitor {
 
         this.required = [];
         let properties = expression.properties.map(m => this.visit(m));
-        
         return {
             name: _.capitalize(_.camelCase(expression.name)),
             properties: properties,
             constructors: [this.genInit()],
-            json: !!expression.get('swiftjson')
+            json: !!expression.get('swiftjson'),
+            extends: expression.get("swiftextends")
         }
     }
     visitProperty(expression: PropertyExpression): any {
@@ -139,6 +139,9 @@ export const Meta: Description = {
             swiftjson: {
                 arguments: 'boolean',
                 description: "Generate json init"
+            },
+            swiftextends: {
+                arguments: "string"
             },
             doc: {
                 arguments: 'string',
