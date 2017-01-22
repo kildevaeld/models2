@@ -9,16 +9,18 @@ service AddressService {
 
 @doc("This is the address")
 @gotags("json")
+@swiftjson
 record Address {
+    @swiftlet
+    id: string;
     @doc("This should stil be here")
     street: string?;
     city: string;
     @doc("")
-    isoCode: string;
+    iso_code: string;
 
     @gopointer
-    @gotags({"json":"created_at"})
-    createdAt: date;
+    created_at: date;
     email: [string];
     test: [string]?;
 

@@ -1,38 +1,40 @@
 
-import {Description, VisitorOptions, Item, Result, BaseVisitor } from '../visitor';
+import {Description, VisitorOptions,, Result, BaseVisitor } from '../visitor';
 import {Type, Token, Modifier} from '../tokens';
+
+import {
+    Expression, PackageExpression, RecordExpression,
+    AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression,
+    RepeatedTypeExpression, MapTypeExpression, OptionalTypeExpression, 
+    ExpressionPosition, AnnotatedExpression
+} from '../expressions';
+
+
 import * as hbs from 'handlebars';
 import * as hbsh from 'handlebars-helpers';
 
 import * as fs from 'mz/fs';
 import * as Path from 'path';
 
+import * as _ from 'lodash';
+
 class SwiftVisitor extends BaseVisitor {
 
     required: string[][];
     isRealm: boolean;
-    async parse(item: Item) {
-        let result = super.parse(item).filter(m => m != null);
-
+    async parse(item: PackageExpression) {
+        let result = this.visit(item)  //.filter(m => m != null);
+        console.log(result)
         hbsh({handlebars:hbs});
 
         let buffer = await fs.readFile(Path.resolve(__dirname, "../../templates/swift.hbs"));
 
-        let output = hbs.compile(buffer.toString())({records:result});
+        let output = hbs.compile(buffer.toString())(result);
 
         console.log(output)
         return result;
     }
 
-    visitImport(item: Item): any {
-        // Swift does not need to import source files
-        return null
-    }
-
-    visitPackage(item: Item): any {
-        // Skip packages
-        return this.visit(item[2])
-    }
 
     genInit() {
 
@@ -53,89 +55,107 @@ class SwiftVisitor extends BaseVisitor {
         }
     }
 
-    visitRecord(item: Item): any {
+    visitPackage(expression: PackageExpression): any {
+       
+        //this.package = expression.name;
+        /*for (let child of expression.children) {
+            out.push(this.visit(child));
+        }*/
+        let out = expression.children.filter(m => m.nodeType === Token.Record)
+        .map(m => this.visit(m));
+
+        return {
+            records: out
+        }
+    }
+
+    visitRecord(expression: RecordExpression): any {
+
         this.required = [];
+        let properties = expression.properties.map(m => this.visit(m));
         
-        let modifiers = this.visit(item[2].filter(m => m[0] == Token.Modifier))
-        let annotations = modifiers.filter(m => typeof m === 'object');
-        
-        this.isRealm = !!annotations.find(m => m.name === 'realm')
-
-        let props = this.visit(item[2].filter(m => m[0] == Token.Property))
-        
-
-        let init = this.genInit();
-
-        //return `class ${ucFirst(item[1])} {\n${props}\n\n${init}\n}`
+        return {
+            name: _.capitalize(_.camelCase(expression.name)),
+            properties: properties,
+            constructors: [this.genInit()],
+            json: !!expression.get('swiftjson')
+        }
+    }
+    visitProperty(expression: PropertyExpression): any {
+        let name = expression.name;
+        let comment = expression.get('doc'),
+            constant = !!expression.get('swiftlet')
     
+        let type: string = this.visit(expression.type);
+
+        let decl = constant ? 'let' : 'var';
+        let optional = type.indexOf('?') > -1
+        if (constant || !optional) this.required.push([name, type]);
+
         return {
-            name: item[1],
-            properties: props,
-            constructors: [init],
-            extends: this.isRealm ? 'Object' : ''
+            property: decl + ` ${name}: ${type}`,
+            comment: comment,
+            type: type.replace('?',''),
+            name: name
         }
     }
 
-    visitProperty(item: Item): any {
-        let type = this.visit(item[2]);
-        let modifiers = this.visit(item[2][2]);
-        
-        let isOptional = modifiers.find(m => m === Modifier.Optional) === Modifier.Optional
-        let isRepeated = modifiers.find(m => m === Modifier.Repeated) === Modifier.Repeated
-
-        let o = (isRepeated ? '[' : ''), c = (isRepeated ? ']' : '')
-        let typeStr = o + type + c
-        if (!isOptional) this.required.push([item[1], typeStr]);
-
-
-        let annotations = modifiers.filter(m => typeof m === 'object')||[];
-        let swift = annotations.find(m => m.name == 'swift');
-        let name = swift ? swift.value : item[1];
-        let decl = annotations.find(m => m.name == 'constant') ? 'let' : 'var'
-        let doc = annotations.find(m => m.name == 'doc')
-        
-        return {
-            property: `${decl} ${name}: ` + o + type + c + (isOptional ? '?' : ''),
-            comment: doc ? doc.value : void 0
-        }
-
-    }
-
-    visitBuildinType(item: Item): any {
-        switch (item[1]) {
-            case Type.Bytes: return "Data";
-            default: return Type[item[1]]
+    visitType(expression: TypeExpression): any {
+        switch (expression.type) {
+            case Type.Bytes: return "Data"
+            default: return Type[expression.type];
         }
     }
 
-    visitImportType(item: Item): any {
-        return item[1][1];
+    visitImportType(expression: ImportTypeExpression): any {
+        return expression.name
     }
 
+    visitOptionalType(expression: OptionalTypeExpression): any {
+        return this.visit(expression.type) + '?';
+    }
 
+    visitRepeatedType(expression: RepeatedTypeExpression): any {
+        return "[" + this.visit(expression.type) + "]";
+    }
 
-    visitModifier(item: Item): any {
-        if (item[1] == Modifier.Annotation) {
-            return {
-                name: item[2],
-                value: item[3]
-            }
-        }
-        return item[1];
+    visitMapType(expression: MapTypeExpression): any {
+        let key = this.visit(expression.key);
+        let value = this.visit(expression.value);
+        return `Dictionary<${key},${value}>`;
+    }
+
+    visitAnnotation(expression: AnnotationExpression): any {
+        return expression;
     }
 
 }
-/*
+
 export const Meta: Description = {
     name: "Swift",
     extname: ".swift",
-    run: (item: Item, options: VisitorOptions): Promise<Result[]> => {
+    annotations: {
+        records: {
+            swiftjson: {
+                arguments: 'boolean'
+            }
+        },
+        properties: {
+            swiftlet: {
+                arguments: 'boolean'
+            },
+            doc: {
+                arguments: 'string'
+            }
+        }
+    },
+    run: (item: PackageExpression, options: VisitorOptions): Promise<Result[]> => {
         let visitor = new SwiftVisitor(options);
         let json = visitor.parse(item);
-
+        console.log(json)
         return Promise.resolve([{
             data: new Buffer(""),
             name: options.file
         }]);
     }
-}*/
+}

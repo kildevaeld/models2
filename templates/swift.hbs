@@ -4,18 +4,37 @@ import Foundation
 
 {{#each records ~}}
 class {{capitalize name}}{{#if extends~}}: {{extends}}{{~/if}} {
+{{#if json}}
+    enum ValidationError: Error {
+        case missing(String)
+        case invalid(String)
+    }
+{{/if}}
 {{#each properties}}
     {{#if comment}}//{{comment}}{{/if}}
     {{{property}}}
 {{/each}}
 
 {{#each constructors}}
-    init({{arguments}}) {
+    init({{{arguments}}}) {
     {{#each initializers}}
         {{{this}}}
     {{/each}}
     }
 {{/each}}
+{{#if json}}
+    init(attributes:[String:Any]) throws {
+    {{#each properties}}
+        guard let {{name}} = attributes["{{name}}"] as? {{{type}}} else {
+            throw ValidationError.missing("{{name}}")
+        }
+    {{/each}}
+    {{#each properties}}
+        self.{{name}} = {{name}}
+    {{/each}}
+    }
+
+{{/if}}
 
 }
 {{~/each}}

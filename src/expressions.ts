@@ -73,6 +73,10 @@ export abstract class Expression {
     static createMethod(position: ExpressionPosition, args: any[]) {
         return new MethodExpression(position, args[0], args[1], args[2], args[3]);
     }
+
+    static createAnonymousRecord(position: ExpressionPosition, args: any[]) {
+        return new AnonymousRecordExpression(position, args[0]);
+    }
 }
 
 export class PackageExpression extends Expression {
@@ -188,6 +192,13 @@ export class ServiceExpression extends AnnotatedExpression {
     }
 }
 
+export class AnonymousRecordExpression extends Expression {
+    nodeType = Token.AnonymousRecord;
+    constructor(public position: ExpressionPosition, public properties: PropertyExpression[]) {
+        super();
+    }
+}
+
 export function createExpression(type: Token, position: ExpressionPosition, ...args): Expression {
     switch (type) {
         case Token.Package: return Expression.createPackage(position, args)
@@ -204,5 +215,6 @@ export function createExpression(type: Token, position: ExpressionPosition, ...a
 
         case Token.Service: return Expression.createService(position, args);
         case Token.Method: return Expression.createMethod(position, args);
+        case Token.AnonymousRecord: return Expression.createAnonymousRecord(position, args);
     }
 }

@@ -74,8 +74,8 @@ RecordBody
 
 
 Property
-	= a:(aa:Annotation __ { return aa;})* __ name:alpha+ __ ":" __  type:PropertyType __ semi {
-    return expression(Token.Property, name.join(''), a, type)
+	= a:(aa:Annotation __ { return aa;})* __ name:Identifier __ ":" __  type:PropertyType __ semi {
+    return expression(Token.Property, name, a, type)
   }
 
 
@@ -161,19 +161,13 @@ method_arguments
         head:method_argument
         tail:("," ws m:method_argument { return m; })*
         {
-          var result = {};
-
-          [head].concat(tail).forEach(function(element) {
-            result[element.name] = element.value;
-          });
-
-          return result; //expression(NodeType.TypedObjectType, result);
+          return expression(Token.AnonymousRecord, [head].concat(tail));
         }
       )? { return members}
 
 method_argument
     = name:Identifier ws ":" ws value:PropertyType ws {
-        return {name:name, value:value};
+        return expression(Token.Property, name, [], value) //{name:name, value:value};
     }
 
 return_arguments

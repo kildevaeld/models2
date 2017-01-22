@@ -75,7 +75,7 @@ module.exports = (function() {
         peg$c25 = ":",
         peg$c26 = { type: "literal", value: ":", description: "\":\"" },
         peg$c27 = function(a, name, type) {
-            return expression(Token.Property, name.join(''), a, type)
+            return expression(Token.Property, name, a, type)
           },
         peg$c28 = "?",
         peg$c29 = { type: "literal", value: "?", description: "\"?\"" },
@@ -176,17 +176,11 @@ module.exports = (function() {
         peg$c111 = function(i) { return i; },
         peg$c112 = function(head, m) { return m; },
         peg$c113 = function(head, tail) {
-                  var result = {};
-
-                  [head].concat(tail).forEach(function(element) {
-                    result[element.name] = element.value;
-                  });
-
-                  return result; //expression(NodeType.TypedObjectType, result);
+                  return expression(Token.AnonymousRecord, [head].concat(tail));
                 },
         peg$c114 = function(members) { return members},
         peg$c115 = function(name, value) {
-                return {name:name, value:value};
+                return expression(Token.Property, name, [], value) //{name:name, value:value};
             },
         peg$c116 = function(i) { return i },
         peg$c117 = function(m) {
@@ -1120,16 +1114,7 @@ module.exports = (function() {
       if (s1 !== peg$FAILED) {
         s2 = peg$parse__();
         if (s2 !== peg$FAILED) {
-          s3 = [];
-          s4 = peg$parsealpha();
-          if (s4 !== peg$FAILED) {
-            while (s4 !== peg$FAILED) {
-              s3.push(s4);
-              s4 = peg$parsealpha();
-            }
-          } else {
-            s3 = peg$FAILED;
-          }
+          s3 = peg$parseIdentifier();
           if (s3 !== peg$FAILED) {
             s4 = peg$parse__();
             if (s4 !== peg$FAILED) {

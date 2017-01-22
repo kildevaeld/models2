@@ -2,7 +2,7 @@
 export enum Token {
     Package = 1, Record, Property, Import, ImportType, PrimitiveType,
     OptionalType, RepeatedType, MapType, Annotation, RecordType,
-    Service, Method
+    Service, Method, AnonymousRecord
 }
 
 

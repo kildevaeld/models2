@@ -24,6 +24,7 @@ export declare abstract class Expression {
     static createAnnotation(position: ExpressionPosition, args: any[]): AnnotationExpression;
     static createService(position: ExpressionPosition, args: any[]): ServiceExpression;
     static createMethod(position: ExpressionPosition, args: any[]): MethodExpression;
+    static createAnonymousRecord(position: ExpressionPosition, args: any[]): AnonymousRecordExpression;
 }
 export declare class PackageExpression extends Expression {
     position: ExpressionPosition;
@@ -122,5 +123,11 @@ export declare class ServiceExpression extends AnnotatedExpression {
     methods: MethodExpression[];
     nodeType: Token;
     constructor(position: ExpressionPosition, name: string, annotations: AnnotationExpression[], methods: MethodExpression[]);
+}
+export declare class AnonymousRecordExpression extends Expression {
+    position: ExpressionPosition;
+    properties: PropertyExpression[];
+    nodeType: Token;
+    constructor(position: ExpressionPosition, properties: PropertyExpression[]);
 }
 export declare function createExpression(type: Token, position: ExpressionPosition, ...args: any[]): Expression;

@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { Expression, PackageExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, OptionalTypeExpression, MapTypeExpression, ExpressionPosition, RecordTypeExpression, ServiceExpression, MethodExpression } from './expressions';
+import { Expression, PackageExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, OptionalTypeExpression, MapTypeExpression, ExpressionPosition, RecordTypeExpression, ServiceExpression, MethodExpression, AnonymousRecordExpression } from './expressions';
 import { Validator } from './options';
 export interface VisitorOptions {
     split: boolean;
@@ -52,6 +52,7 @@ export interface IVisitor {
     visitAnnotation(expression: AnnotationExpression): any;
     visitService(expression: ServiceExpression): any;
     visitMethod(expression: MethodExpression): any;
+    visitAnonymousRecord(expression: AnonymousRecordExpression): any;
 }
 export declare abstract class BaseVisitor implements IVisitor {
     options: VisitorOptions;
@@ -69,6 +70,7 @@ export declare abstract class BaseVisitor implements IVisitor {
     abstract visitAnnotation(expression: AnnotationExpression): any;
     visitService(_: ServiceExpression): any;
     visitMethod(_: MethodExpression): any;
+    visitAnonymousRecord(_: AnonymousRecordExpression): any;
 }
 export declare class AnnotationValidationError extends Error {
     message: string;

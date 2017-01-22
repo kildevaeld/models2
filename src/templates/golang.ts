@@ -10,6 +10,8 @@ import {
     ExpressionPosition, AnnotatedExpression
 } from '../expressions';
 
+import * as _ from 'lodash'
+
 export class GolangError extends Error {
     constructor(public message: string, public location: ExpressionPosition) {
         super(message);
@@ -17,7 +19,7 @@ export class GolangError extends Error {
 }
 
 function ucFirst(name: string) {
-    return name[0].toUpperCase() + name.substr(1)
+    return _.upperFirst(_.camelCase(name))
 }
 
 
@@ -200,6 +202,7 @@ export class GolangVisitor extends BaseVisitor {
 export const Meta: Description = {
     name: "Golang",
     extname: ".go",
+
     annotations: {
         records: {
             gotags: {

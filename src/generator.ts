@@ -22,6 +22,7 @@ interface Options {
 
 function getAnnotationValidations(desc:Description): PreprocessOptions {
 
+    if (!desc.annotations) return null;
 
     let out: PreprocessOptions = {records:{}, properties:{}}
     for (let key of ['properties', 'records']) {

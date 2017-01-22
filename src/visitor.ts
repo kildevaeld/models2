@@ -4,12 +4,13 @@ import * as _ from 'lodash';
 
 import { Token } from './tokens';
 import * as Parser from './models';
+
 import {
     Expression, PackageExpression, ImportExpression, RecordExpression,
     AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression,
     RepeatedTypeExpression, OptionalTypeExpression,
     MapTypeExpression, ExpressionPosition, ImportedPackageExpression, RecordTypeExpression,
-    ServiceExpression, MethodExpression
+    ServiceExpression, MethodExpression, AnonymousRecordExpression
 } from './expressions';
 
 
@@ -81,6 +82,7 @@ export interface IVisitor {
 
     visitService(expression: ServiceExpression): any;
     visitMethod(expression: MethodExpression): any;
+    visitAnonymousRecord(expression: AnonymousRecordExpression): any;
 }
 
 export abstract class BaseVisitor implements IVisitor {
@@ -105,6 +107,7 @@ export abstract class BaseVisitor implements IVisitor {
 
             case Token.Service: return this.visitService(expression as ServiceExpression);
             case Token.Method: return this.visitMethod(expression as MethodExpression);
+            case Token.AnonymousRecord: return this.visitAnonymousRecord(expression as AnonymousRecordExpression);
         }
 
     }
@@ -129,6 +132,10 @@ export abstract class BaseVisitor implements IVisitor {
     }
 
     visitMethod(_: MethodExpression): any {
+
+    }
+
+    visitAnonymousRecord(_: AnonymousRecordExpression): any {
 
     }
 
@@ -305,40 +312,7 @@ export class Preprocessor {
         return [];
     }
 
-    /*private validateImportTypes(item: PackageExpression) {
-
-        let imports = this.getImports(item);
-        let models = this.getModels(item);
-
-        let errors = [];
-        for (let model of models) {
-
-            let importTypes: { name: string, prop: ImportTypeExpression; }[] = <any>model.properties.map(m => {
-                if (m.nodeType == Token.Property) return {
-                    prop: this.getInner(m as PropertyExpression),
-                    name: (m as PropertyExpression).name
-                };
-                return null
-            }).filter(m => m !== null && m.prop.nodeType == Token.ImportType)
-
-
-            for (let prop of importTypes) {
-                let found = !!imports.find(m => m[0] == prop.prop.packageName && m[1] == prop.prop.name);
-                if (!found) {
-                    errors.push({
-                        property: prop.name,
-                        type: prop.prop.name,
-                        position: prop.prop.position
-                    });
-                }
-            }
-        }
-
-        if (errors.length) {
-            throw new ValidationError("Import error", errors);
-        }
-
-    }*/
+    
 
     private getModels(item: PackageExpression) {
         return item.children.filter(m => m.nodeType == Token.Record) as RecordExpression[];
