@@ -7,7 +7,7 @@ import {
     Expression, PackageExpression, RecordExpression,
     AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression,
     RepeatedTypeExpression, MapTypeExpression, OptionalTypeExpression, 
-    ExpressionPosition, AnnotatedExpression
+    ExpressionPosition, AnnotatedExpression, ServiceExpression, MethodExpression, AnonymousRecordExpression
 } from '../expressions';
 
 import * as _ from 'lodash'
@@ -194,6 +194,18 @@ export class GolangVisitor extends BaseVisitor {
 
     visitAnnotation(expression: AnnotationExpression): any {
         return expression;
+    }
+
+    visitService(_: ServiceExpression): any {
+        
+    }
+
+    visitMethod(_: MethodExpression): any {
+
+    }
+
+    visitAnonymousRecord(_: AnonymousRecordExpression): any {
+
     }
 
 }
