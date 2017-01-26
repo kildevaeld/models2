@@ -1,13 +1,19 @@
-import { Item, BaseVisitor } from '../visitor';
+import { BaseVisitor, Description } from '../visitor';
+import { PackageExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, MapTypeExpression, OptionalTypeExpression, RecordTypeExpression } from '../expressions';
 export declare class TypescriptVisitor extends BaseVisitor {
-    imports: string[][];
-    parse(item: Item): string;
-    visitImport(item: Item): any;
-    visitPackage(item: Item): any;
-    visitRecord(item: Item): any;
-    visitProperty(item: Item): any;
-    visitAnnotation(item: Item): any;
-    visitBuildinType(item: Item): any;
-    visitImportType(item: Item): any;
-    visitModifier(item: Item): any;
+    imports: {
+        [key: string]: Set<string>;
+    };
+    parse(item: PackageExpression): string;
+    visitPackage(item: PackageExpression): any;
+    visitRecord(item: RecordExpression): any;
+    visitProperty(item: PropertyExpression): any;
+    visitAnnotation(item: AnnotationExpression): any;
+    visitType(item: TypeExpression): any;
+    visitImportType(item: ImportTypeExpression): any;
+    visitRecordType(expression: RecordTypeExpression): any;
+    visitOptionalType(expression: OptionalTypeExpression): any;
+    visitRepeatedType(expression: RepeatedTypeExpression): any;
+    visitMapType(expression: MapTypeExpression): any;
 }
+export declare const Meta: Description;

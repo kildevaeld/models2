@@ -1,4 +1,4 @@
-
+import * as _ from 'lodash';
 
 export function isString(a:any): a is string {
     return typeof a === 'string';
@@ -17,7 +17,8 @@ export function isStringArray(a: any): a is string[] {
 }
 
 export function ucFirst(name: string) {
-    return name[0].toUpperCase() + name.substr(1)
+    return _.upperFirst(_.camelCase(name));
+    //return name[0].toUpperCase() + name.substr(1)
 }
 
 export function arrayToSet(...arrays: string[]) {

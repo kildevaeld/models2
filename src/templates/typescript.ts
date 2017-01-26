@@ -1,47 +1,59 @@
 
 import * as Path from 'path'
-import { Item, BaseVisitor, Description, VisitorOptions, Result } from '../visitor';
-import { Type, Modifier, Token } from '../tokens';
+import { BaseVisitor, Description, VisitorOptions, ValidationError, Result } from '../visitor';
+import { Type, Token } from '../tokens';
+import {
+    Expression, PackageExpression, RecordExpression,
+    AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression,
+    RepeatedTypeExpression, MapTypeExpression, OptionalTypeExpression, 
+    ExpressionPosition, AnnotatedExpression, RecordTypeExpression
+} from '../expressions';
+
+import {ucFirst} from '../utils';
 
 export class TypescriptVisitor extends BaseVisitor {
-    imports: string[][] = [];
+    imports: {[key: string]: Set<string>} = {};
 
-    parse(item: Item) {
-        let out = super.parse(item);
-        let i = this.imports.map(m => {
-            return `import * as ${m[0]} from './${m[1]}'`;
-        }).join('\n');
+    parse(item: PackageExpression) {
+        let out = this.visit(item);
+        let i = "";
+        let imports = item.imports;
+        if (Object.keys(this.imports).length) {
+            let out = [];
+            for (let key in this.imports) {
+                let file = Path.basename(imports.find(m => m.name == key).fileName, '.record');
+                let array = [...this.imports[key]];
+                out.push(`import {${array.join(', ')}} from './${file}'`);
+            }
+            i = out.join('\n');
+        }
         return i + "\n" + out;
     }
 
-    visitImport(item: Item): any {
-        this.imports.push([item[1][0], Path.basename(item[1][1], '.record')]);
+    visitPackage(item: PackageExpression): any {
+        let records = item.children.filter(m => m.nodeType == Token.Record).map(m => this.visit(m));
+        return `// ${item.name}\n${records.join('\n\n')}\n`;
+    }
+    visitRecord(item: RecordExpression): any {
+        let props = item.properties.map( m => this.visit(m));
+        let c = !!item.get('tsclass');
+        return `export ${c ? 'class' : 'interface'} ${ucFirst(item.name)} {\n${props.join('\n')}\n}`;
+    }
+    visitProperty(item: PropertyExpression): any {
+        let type = this.visit(item.type);
+        let isOptional = item.type.nodeType === Token.OptionalType;
+        return `  ${item.name}` + (isOptional ? '?' : '') + ": " + type + ';'
+    }
+    
+    visitAnnotation(item: AnnotationExpression): any {
+        return item;
     }
 
-    visitPackage(item: Item): any {
-        return `// ${item[1]}\n${this.visit(item[2]).join('\n\n')}\n`;
-    }
-    visitRecord(item: Item): any {
-        let props = this.visit(item[2].filter(m => m[0] == Token.Property))
-            .join('\n');
-
-        let a = this.visit(item[2].filter(m => m[0] == Token.Modifier && m[1] == Modifier.Annotation))
-        let c = !!a.find(a => a.name == 'class')
-        return `export ${c ? 'class' : 'interface'} ${item[1]} {\n${props}\n}`;
-    }
-    visitProperty(item: Item): any {
-        let type = this.visit(item[2]);
-        let modifiers = this.visit(item[2][2]);
-        let isOptional = modifiers.find(m => m === Modifier.Optional) === Modifier.Optional
-        let isRepeated = modifiers.find(m => m === Modifier.Repeated) === Modifier.Repeated
-        return `  ${item[1]}` + (isOptional ? '?' : '') + ": " + type + (isRepeated ? '[]' : '') + ';'
-    }
-    visitAnnotation(item: Item): any {
-        return this.visit(item[2]);
-    }
-
-    visitBuildinType(item: Item): any {
-        let type = <Type>item[1]
+    visitType(item: TypeExpression): any {
+        let type = item.type;
+        if (type === Type.Bytes) {
+            throw new ValidationError("Typescript: A field cannot be binary");
+        }
         switch (type) {
             case Type.Boolean: return "boolean";
             case Type.String: return "string";
@@ -50,29 +62,52 @@ export class TypescriptVisitor extends BaseVisitor {
         }
 
     }
-    visitImportType(item: Item): any {
-        return item[1].join('.');
+
+    visitImportType(item: ImportTypeExpression): any {
+        if (!this.imports[item.packageName]) this.imports[item.packageName] = new Set();
+        this.imports[item.packageName].add(item.name);
+        return item.name;
     }
 
 
-
-    visitModifier(item: Item): any {
-        if (item[1] == Modifier.Annotation) {
-            return {
-                name: item[2],
-                value: item[3]
-            }
+    //visitPackage(expression: PackageExpression): any;
+    visitRecordType(expression: RecordTypeExpression): any {
+        return expression.name;
+    }
+    
+    visitOptionalType(expression: OptionalTypeExpression): any {
+        return this.visit(expression.type);
+    }
+    visitRepeatedType(expression: RepeatedTypeExpression): any {
+        let type = this.visit(expression.type);
+        return type + "[]";
+    }
+    visitMapType(expression: MapTypeExpression): any {
+        let key = this.visit(expression.key);
+        let val = this.visit(expression.value);
+        switch (expression.key.nodeType) {
+            case Token.RepeatedType: return `Map<${key},${val}>`;
+            case Token.MapType: return `Map<${key},${val}>`;
         }
-        return item[1];
+        
+        return `{[key:${key}]: ${val}}`;
     }
-
+    
 }
 
-/*
+
 export const Meta: Description = {
     name: "Typescript",
     extname: ".ts",
-    run: (item: Item, options: VisitorOptions): Promise<Result[]> => {
+    annotations: {
+        records: {
+            tsclass: {
+                arguments: 'string',
+                description: "Generate a class instead of an interface"
+            }
+        }
+    },
+    run: (item: PackageExpression, options: VisitorOptions): Promise<Result[]> => {
         let visitor = new TypescriptVisitor(options);
         let json = visitor.parse(item);
 
@@ -81,4 +116,4 @@ export const Meta: Description = {
             name: options.file
         }]);
     }
-}*/
+}
