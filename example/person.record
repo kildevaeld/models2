@@ -4,6 +4,7 @@ import "address";
 
 @doc("Person is the head of state")
 @gotags(["json","msgpack"])
+@swiftrealm
 record Person {
     @constant
     id: string;

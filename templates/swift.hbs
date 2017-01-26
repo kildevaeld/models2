@@ -12,7 +12,7 @@ class {{capitalize name}}{{#if extends~}}: {{extends}}{{~/if}} {
 {{/if}}
 {{#each properties}}
     {{#if comment}}//{{comment}}{{/if}}
-    {{{property}}}
+    {{{property}}}{{#if defaultValue}} = {{defaultValue}}{{/if}}
 {{/each}}
 
 {{#each constructors}}

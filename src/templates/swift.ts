@@ -31,14 +31,14 @@ class SwiftVisitor extends BaseVisitor {
 
         let output = hbs.compile(buffer.toString())(result);
 
-        console.log(output)
-        return result;
+        
+        return output;
     }
 
 
     genInit() {
 
-        if (this.required.length == 0) return '  init() {}'
+        if (this.required.length == 0 || this.isRealm) return '  init() {}'
 
         let args = this.required.map(m => {
             return m[0] + ": " + m[1];
@@ -70,7 +70,7 @@ class SwiftVisitor extends BaseVisitor {
     }
 
     visitRecord(expression: RecordExpression): any {
-
+        this.isRealm = !!expression.get('swiftrealm')
         this.required = [];
         let properties = expression.properties.map(m => this.visit(m));
         return {
@@ -78,7 +78,7 @@ class SwiftVisitor extends BaseVisitor {
             properties: properties,
             constructors: [this.genInit()],
             json: !!expression.get('swiftjson'),
-            extends: expression.get("swiftextends")
+            extends: this.isRealm ? "Object" : expression.get("swiftextends")
         }
     }
     visitProperty(expression: PropertyExpression): any {
@@ -92,11 +92,28 @@ class SwiftVisitor extends BaseVisitor {
         let optional = type.indexOf('?') > -1
         if (constant || !optional) this.required.push([name, type]);
 
+        let defaultValue = this.isRealm ? this.getDefaultForPrimitiveType(<any>expression) : ""
+
+        if (optional && this.isRealm) {
+            defaultValue = 'nil';
+        }
         return {
-            property: decl + ` ${name}: ${type}`,
+            property: (this.isRealm ? 'dynamic ' : '' ) + decl + ` ${name}: ${type}`,
             comment: comment,
             type: type.replace('?',''),
-            name: name
+            name: name,
+            defaultValue: defaultValue
+        }
+    }
+
+    getDefaultForPrimitiveType(expression: TypeExpression) {
+        console.log(expression.type)
+        switch (expression.type) {
+            case Type.String: return '""'
+            case Type.Boolean: return "false"
+            case Type.Bytes: return "Data()"
+            case Type.Date: return "Date()"
+            default: return "0"
         }
     }
 
@@ -115,7 +132,22 @@ class SwiftVisitor extends BaseVisitor {
         return this.visit(expression.type) + '?';
     }
 
+    getInner(expression:any) {
+        switch (expression.nodeType) {
+            case Token.PrimitiveType: return expression
+            case Token.OptionalType: return this.getInner(expression.type);
+        } 
+        return expression
+    }
+
     visitRepeatedType(expression: RepeatedTypeExpression): any {
+        if (this.isRealm) {
+            let inner = this.getInner(expression.type);
+            if (inner.nodeType != Token.RecordType && inner.nodeType != Token.ImportType) {
+                throw new Error('SwiftRealm: Repeated type must be a RecordType or a ImportType');
+            }
+            return `List<${this.visit(expression.type)}>`;
+        }
         return "[" + this.visit(expression.type) + "]";
     }
 
@@ -161,11 +193,15 @@ export const Meta: Description = {
     },
     run: (item: PackageExpression, options: VisitorOptions): Promise<Result[]> => {
         let visitor = new SwiftVisitor(options);
-        let json = visitor.parse(item);
-        console.log(json)
-        return Promise.resolve([{
+        return visitor.parse(item)
+        .then( json => {
+            console.log(json)
+            return json
+        })
+
+        /*return Promise.resolve([{
             data: new Buffer(""),
             name: options.file
-        }]);
+        }]);*/
     }
 }

@@ -67,7 +67,12 @@ class JSONSchemaVisitor extends BaseVisitor {
         type.title = expression.name;
         let format = expression.get('schemaformat');
         if (format) type.format = format;
-        if (!this.optional) this.required.push(type.title)
+        if (!this.optional) {
+            this.required.push(type.title)
+        } else {
+            type.type = [type.type, 'null'];
+        }
+
         let doc = expression.get('doc');
         if (doc) type.description = doc;
         return type;
@@ -119,7 +124,7 @@ class JSONSchemaVisitor extends BaseVisitor {
         return {type: 'object', additionalProperties: true};
     }
     visitAnnotation(expression: AnnotationExpression): any {
-        let formats = ['url', 'email', 'date-time'];
+        let formats = ['uri', 'email', 'date-time'];
         if (expression.name === 'schemaformat') {
             if (formats.indexOf(expression.args) === -1) 
                 throw new ValidationError("schemaformat must be " + formats.join('|'));
