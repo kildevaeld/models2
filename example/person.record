@@ -18,5 +18,5 @@ record Person {
 
 record Something {
     id: string;
-    createdAt: date;
+    createdAt: date?;
 }
