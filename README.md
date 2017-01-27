@@ -39,8 +39,8 @@ record User {
 Generate models in the desired language
 
 ```sh
-$ records gen -t Golang *.records -o models
-$ records gen -t Typescript *.records -o models
-$ records gen -t JSONSchema *.records -o models
+$ records gen -t Golang *.record -o models
+$ records gen -t Typescript *.record -o models
+$ records gen -t JSONSchema *.record -o models
 
 ```
