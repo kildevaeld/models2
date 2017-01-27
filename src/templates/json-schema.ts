@@ -14,7 +14,7 @@ class JSONSchemaVisitor extends BaseVisitor {
     package: PackageExpression;
     parse(expression: PackageExpression) {
         let results = this.visit(expression);
-        
+
         return results.map(m => {
             return {
                 name: m.title.toLowerCase() + ".json",
@@ -35,7 +35,7 @@ class JSONSchemaVisitor extends BaseVisitor {
         this.required = [];
 
         let r = this.package.children.find(m => m.nodeType == Token.Record && (<any>m).name == expression.name);
-        
+
         let out = this.visit(r);
         delete out['$schema'];
 
@@ -58,7 +58,7 @@ class JSONSchemaVisitor extends BaseVisitor {
             "title": expression.name,
             "properties": props,
             "required": this.required,
-            "description": expression.get('doc')||""
+            "description": expression.get('doc') || ""
         }
     }
     visitProperty(expression: PropertyExpression): any {
@@ -82,7 +82,7 @@ class JSONSchemaVisitor extends BaseVisitor {
         out.type = (function () {
             switch (expression.type) {
                 case Type.String: return "string";
-                case Type.Date: 
+                case Type.Date:
                     out.format = 'date-time';
                     return 'string';
                 case Type.Boolean: return 'boolean';
@@ -99,15 +99,17 @@ class JSONSchemaVisitor extends BaseVisitor {
 
         let oldOptional = this.optional;
         let oldRequired = this.required;
+        let oldPackage = this.package
+
         this.optional = false;
         this.required = [];
-
+        this.package = i;
         let out = this.visit(r);
         delete out['$schema'];
 
         this.optional = oldOptional;
-        this.required = oldRequired
-
+        this.required = oldRequired;
+        this.package = oldPackage;
         return out;
     }
     visitOptionalType(expression: OptionalTypeExpression): any {
@@ -115,18 +117,18 @@ class JSONSchemaVisitor extends BaseVisitor {
         return this.visit(expression.type);
     }
     visitRepeatedType(expression: RepeatedTypeExpression): any {
-        return { type: 'array', items: this.visit(expression.type)};
+        return { type: 'array', items: this.visit(expression.type) };
     }
     visitMapType(expression: MapTypeExpression): any {
         if ((<any>expression.key).type !== Type.String) {
             throw new Error('map key must be a string')
         }
-        return {type: 'object', additionalProperties: true};
+        return { type: 'object', additionalProperties: true };
     }
     visitAnnotation(expression: AnnotationExpression): any {
         let formats = ['uri', 'email', 'date-time'];
         if (expression.name === 'schemaformat') {
-            if (formats.indexOf(expression.args) === -1) 
+            if (formats.indexOf(expression.args) === -1)
                 throw new ValidationError("schemaformat must be " + formats.join('|'));
         }
         return expression;
@@ -163,7 +165,7 @@ export const Meta: Description = {
     run: (item: Expression, options: VisitorOptions): Promise<Result[]> => {
         let visitor = new JSONSchemaVisitor(options);
         let json = visitor.parse(item as PackageExpression);
-       
+
         return Promise.resolve(json);
     }
 }
