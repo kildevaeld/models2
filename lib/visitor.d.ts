@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { Expression, PackageExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, OptionalTypeExpression, MapTypeExpression, ExpressionPosition, RecordTypeExpression, ServiceExpression, MethodExpression, AnonymousRecordExpression } from './expressions';
+import { Expression, PackageExpression, RecordExpression, AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression, RepeatedTypeExpression, OptionalTypeExpression, MapTypeExpression, ExpressionPosition, ImportedPackageExpression, RecordTypeExpression, ServiceExpression, MethodExpression, AnonymousRecordExpression } from './expressions';
 import { Validator } from './options';
 export interface VisitorOptions {
     split: boolean;
@@ -87,20 +87,30 @@ export declare class AnnotationValidationError extends Error {
     };
 }
 export interface PreprocessOptions {
-    records: {
+    /**
+     * Annotation validators for records
+     */
+    records?: {
         [key: string]: Validator;
     };
-    properties: {
+    /**
+     * Annotation validators for properties
+     */
+    properties?: {
         [key: string]: Validator;
     };
+    /**
+     * Current file path
+     */
+    fileName: string;
 }
 export declare class Preprocessor {
     parent: string;
     previousParent: string;
-    parse(item: Expression, options?: PreprocessOptions): Promise<PackageExpression>;
-    private process(item);
+    parse(item: Expression, options: PreprocessOptions): Promise<ImportedPackageExpression>;
+    private process(item, options);
     private detectCircularDependencies(path);
-    private import(item);
+    private import(item, options);
     private getInner(exp);
     private validate(item, options?);
     private validateModel(record, imports, options?);

@@ -20,13 +20,13 @@ interface Options {
     split: boolean;
 }
 
-function getAnnotationValidations(desc:Description): PreprocessOptions {
+function getAnnotationValidations(desc: Description): PreprocessOptions {
 
     if (!desc.annotations) return null;
 
-    let out: PreprocessOptions = {records:{}, properties:{}}
+    let out: PreprocessOptions = { records: {}, properties: {} }
     for (let key of ['properties', 'records']) {
-        let an:AnnotationDescriptions = desc.annotations[key];
+        let an: AnnotationDescriptions = desc.annotations[key];
 
         for (let k in an) {
             let a: AnnotationDescription = an[k];
@@ -61,7 +61,7 @@ export class Generator extends EventEmitter {
 
             if (!mod.hasOwnProperty('Meta') || !isDescription(mod.Meta)) continue
 
-            this.buildins.push(_.extend(mod.Meta,{options:getAnnotationValidations(mod.Meta)}));
+            this.buildins.push(_.extend(mod.Meta, { options: getAnnotationValidations(mod.Meta) }));
         }
 
     }
@@ -69,9 +69,9 @@ export class Generator extends EventEmitter {
     async ast(files: string[]) {
         let data = await Promise.all(files.map(file => fs.readFile(file)));
 
-        let m = data.map(file => {
+        let m = data.map((file, i) => {
             let ast = Parser.parse(file.toString());
-            return this.preprocessor.parse(ast);
+            return this.preprocessor.parse(ast, { fileName: files[i] });
         })
         return await Promise.all(m);
     }
@@ -98,7 +98,7 @@ export class Generator extends EventEmitter {
 
         for (let entry of map) {
             let ast = Parser.parse(entry.data.toString());
-            ast = await this.preprocessor.parse(ast, desc.options);
+            ast = await this.preprocessor.parse(ast, Object.assign({ fileName: entry.name }, desc.options));
 
             let result = await desc.run(ast, { split: options.split, file: entry.name.replace('.record', desc.extname) });
 

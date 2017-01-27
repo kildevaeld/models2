@@ -160,8 +160,18 @@ export class AnnotationValidationError extends Error {
 }
 
 export interface PreprocessOptions {
-    records: { [key: string]: Validator };
-    properties: { [key: string]: Validator }
+    /**
+     * Annotation validators for records
+     */
+    records?: { [key: string]: Validator };
+    /**
+     * Annotation validators for properties
+     */
+    properties?: { [key: string]: Validator };
+    /**
+     * Current file path
+     */
+    fileName: string;
 }
 
 // Validate Record types
@@ -169,8 +179,8 @@ export interface PreprocessOptions {
 export class Preprocessor {
     parent: string;
     previousParent: string
-    async parse(item: Expression, options?: PreprocessOptions) {
-        let e = await this.process(item)
+    async parse(item: Expression, options: PreprocessOptions) {
+        let e = await this.process(item, options)
         //this.validateImportTypes(e);
 
         this.validate(e, options);
@@ -178,7 +188,7 @@ export class Preprocessor {
     }
 
 
-    private async process(item: Expression): Promise<PackageExpression> {
+    private async process(item: Expression, options: PreprocessOptions): Promise<ImportedPackageExpression> {
         if (!item) return null;
 
 
@@ -186,7 +196,7 @@ export class Preprocessor {
             throw new Error('Expression not a package');
         }
 
-        let e = item as PackageExpression;
+        let e = item as ImportedPackageExpression;
         e.imports = [];
 
         let children = [];
@@ -197,10 +207,10 @@ export class Preprocessor {
                 continue
             }
 
-            e.imports.push(await this.import(child as ImportExpression));
+            e.imports.push(await this.import(child as ImportExpression, options));
         }
         e.children = children;
-
+        e.fileName = options.fileName;
         return e;
     }
 
@@ -213,11 +223,12 @@ export class Preprocessor {
         this.parent = path;
     }
 
-    private async import(item: ImportExpression): Promise<ImportedPackageExpression> {
 
-        let path = Path.resolve(item.path + ".record");
+    private async import(item: ImportExpression, options: PreprocessOptions): Promise<ImportedPackageExpression> {
+        let dirName = Path.dirname(options.fileName);
+        let path = Path.resolve(dirName, item.path + ".record");
+
         this.detectCircularDependencies(path);
-
 
         let data = await fs.readFile(path);
 
@@ -226,8 +237,11 @@ export class Preprocessor {
             throw Error('ERROR');
         }
 
-        let p: ImportedPackageExpression = await this.parse(ast);
-        p.fileName = path;
+        let o = Object.assign({}, options, {
+            fileName: path
+        });
+
+        let p: ImportedPackageExpression = await this.parse(ast, o);
 
         return p;
 
@@ -281,7 +295,7 @@ export class Preprocessor {
         let annotations = item.annotations;
         let isRecord = item.nodeType === Token.Record;
 
-        let checkers = isRecord ? options.records : options.properties;
+        let checkers = (isRecord ? options.records : options.properties) || {};
         let errors: Error[] = [];
         for (let a of annotations) {
             if (!checkers[a.name]) {
@@ -313,7 +327,7 @@ export class Preprocessor {
         return [];
     }
 
-    
+
 
     private getModels(item: PackageExpression) {
         return item.children.filter(m => m.nodeType == Token.Record) as RecordExpression[];
