@@ -100,7 +100,7 @@ export class Generator extends EventEmitter {
             let ast = Parser.parse(entry.data.toString());
             ast = await this.preprocessor.parse(ast, Object.assign({ fileName: entry.name }, desc.options));
 
-            let result = await desc.run(ast, { split: options.split, file: entry.name.replace('.record', desc.extname) });
+            let result = await desc.run(ast, { split: options.split, file: Path.basename(entry.name, '.record') + desc.extname });
 
             out.push(...result)
             this.emit("parse:file", entry.name);
