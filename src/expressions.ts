@@ -16,7 +16,8 @@ export interface ExpressionPosition {
 export abstract class Expression {
     abstract readonly nodeType: Token
 
-    toJSON() {
+    toJSON(full: boolean = false) {
+        if (full) return this;
         return _.omit(this, 'position')
     }
 
@@ -180,7 +181,7 @@ export class AnnotationExpression extends Expression {
 
 export class MethodExpression extends AnnotatedExpression {
     nodeType = Token.Method;
-    constructor(public position: ExpressionPosition, public name: string, annotations: AnnotationExpression[], public parameter:Expression, public returns:Expression) {
+    constructor(public position: ExpressionPosition, public name: string, annotations: AnnotationExpression[], public parameter: Expression, public returns: Expression) {
         super(annotations);
     }
 }

@@ -10,7 +10,7 @@ export interface ExpressionPosition {
 }
 export declare abstract class Expression {
     readonly abstract nodeType: Token;
-    toJSON(): {};
+    toJSON(full?: boolean): {};
     static createPackage(position: ExpressionPosition, args: any[]): PackageExpression;
     static createImport(position: ExpressionPosition, args: any[]): ImportExpression;
     static createRecord(position: ExpressionPosition, args: any[]): RecordExpression;

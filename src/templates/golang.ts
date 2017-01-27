@@ -1,12 +1,12 @@
 
 import * as Path from 'path'
 import { BaseVisitor, Description, VisitorOptions, Result } from '../visitor';
-import { Type , Token} from '../tokens';
+import { Type, Token } from '../tokens';
 import { isString, isStringArray } from '../utils';
 import {
     Expression, PackageExpression, RecordExpression,
     AnnotationExpression, PropertyExpression, TypeExpression, ImportTypeExpression,
-    RepeatedTypeExpression, MapTypeExpression, OptionalTypeExpression, 
+    RepeatedTypeExpression, MapTypeExpression, OptionalTypeExpression,
     ExpressionPosition, AnnotatedExpression, ServiceExpression, MethodExpression, AnonymousRecordExpression
 } from '../expressions';
 
@@ -82,8 +82,8 @@ export class GolangVisitor extends BaseVisitor {
     }
 
     private generateTags(name: string, exp: AnnotatedExpression) {
-        let gotags: any = exp.get('gotags')||this.gotags;
-        
+        let gotags: any = exp.get('gotags') || this.gotags;
+
         let tagStr = '';
         if (gotags) {
             if (isStringArray(gotags)) {
@@ -105,13 +105,13 @@ export class GolangVisitor extends BaseVisitor {
 
 
     visitPackage(expression: PackageExpression): any {
-       
+
         this.package = expression.name;
         /*for (let child of expression.children) {
             out.push(this.visit(child));
         }*/
         let out = expression.children.filter(m => m.nodeType === Token.Record)
-        .map(m => this.visit(m));
+            .map(m => this.visit(m));
 
         return out;
     }
@@ -120,7 +120,7 @@ export class GolangVisitor extends BaseVisitor {
 
         this.gotags = [];
         this.imports = new Set();
-        
+
 
         let gotags = expression.get('gotags')
         if (gotags) {
@@ -150,7 +150,7 @@ export class GolangVisitor extends BaseVisitor {
 
     }
     visitProperty(expression: PropertyExpression): any {
-        
+
         let name = expression.name;
         let tags = this.generateTags(name, expression);
         let type = this.visit(expression.type);
@@ -170,6 +170,8 @@ export class GolangVisitor extends BaseVisitor {
                 return "time.Time"
             case Type.Boolean: return "bool"
             case Type.Bytes: return "[]byte"
+            case Type.Double: return "float64"
+            case Type.Float: return "float32"
             default: return Type[expression.type].toLowerCase();
         }
     }
@@ -197,7 +199,7 @@ export class GolangVisitor extends BaseVisitor {
     }
 
     visitService(_: ServiceExpression): any {
-        
+
     }
 
     visitMethod(_: MethodExpression): any {

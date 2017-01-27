@@ -1,27 +1,27 @@
 
 import * as program from 'commander';
 import { Generator } from '../generator'
-import {Description} from '../visitor'
+import { Description } from '../visitor'
 import * as chalk from 'chalk';
 const pkg = require('../../package.json');
 import * as hbs from 'handlebars'
 import * as _ from 'lodash'
 
-const helpTemplate = (desc:Description) => {
+const helpTemplate = (desc: Description) => {
 
-let o = Object.assign({}, desc, {
-    name: chalk.bold(desc.name)
+    let o = Object.assign({}, desc, {
+        name: chalk.bold(desc.name)
     })
 
-_.each(_.values(o.annotations.records), (m) => {
-    m.arguments = chalk.cyan(m.arguments);
-})
+    _.each(_.values(o.annotations.records), (m) => {
+        m.arguments = chalk.cyan(m.arguments);
+    })
 
-_.each(_.values(o.annotations.properties), (m) => {
-    m.arguments = chalk.cyan(m.arguments);
-})
+    _.each(_.values(o.annotations.properties), (m) => {
+        m.arguments = chalk.cyan(m.arguments);
+    })
 
-return hbs.compile(`
+    return hbs.compile(`
 Template {{name}}
 
 Records
@@ -75,7 +75,7 @@ function generate(generator: Generator, cmd: program.ICommand, files: string[]) 
 
 }
 
-function generateHelp(generator: Generator, cmd: program.ICommand, template:string) {
+function generateHelp(generator: Generator, cmd: program.ICommand, template: string) {
     let t = generator.buildins.find(m => m.name == template);
 
     if (!t) {
@@ -87,7 +87,7 @@ function generateHelp(generator: Generator, cmd: program.ICommand, template:stri
     } catch (e) {
         console.log(e)
     }
-    
+
 }
 
 
@@ -114,12 +114,13 @@ export async function run() {
             generate(generator, genCmd, files);
         });
 
-
-    program.command('ast <files...>')
+    let astCmd = program.command('ast')
+        .arguments('<files...>')
+        .option('-p, --position', "Generate full ast with position information", false)
         .action((files) => {
             generator.ast(files)
                 .then(ast => {
-                    console.log(JSON.stringify(ast, null, 2))
+                    console.log(JSON.stringify(ast.map(m => m.toJSON(astCmd['position'])), null, 2))
                 }).catch(e => console.log(e))
         })
 
