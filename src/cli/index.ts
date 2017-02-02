@@ -120,7 +120,7 @@ export async function run() {
         .action((files) => {
             generator.ast(files)
                 .then(ast => {
-                    console.log(JSON.stringify(ast.map(m => m.toJSON(astCmd['position'])), null, 2))
+                    console.log(JSON.stringify(ast.map(m => m.toJSON(false)), null, 2))
                 }).catch(e => console.log(e))
         })
 

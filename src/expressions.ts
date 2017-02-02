@@ -17,7 +17,7 @@ export abstract class Expression {
     abstract readonly nodeType: Token
 
     toJSON(full: boolean = false) {
-        if (full) return this;
+        //if (full) return this;
         return _.omit(this, 'position')
     }
 
@@ -77,6 +77,14 @@ export abstract class Expression {
 
     static createAnonymousRecord(position: ExpressionPosition, args: any[]) {
         return new AnonymousRecordExpression(position, args[0]);
+    }
+
+    static createEnumType(position: ExpressionPosition, args: any[]) {
+        return new EnumTypeExpression(position, args[0], args[1]);
+    }
+
+    static createEnumMember(position: ExpressionPosition, args: any[]) {
+        return new EnumMemberExpression(position, args[0], args[1]);
     }
 }
 
@@ -200,6 +208,20 @@ export class AnonymousRecordExpression extends Expression {
     }
 }
 
+export class EnumTypeExpression extends Expression {
+    nodeType = Token.EnumType;
+    constructor(public position: ExpressionPosition, public name: string, public members: EnumMemberExpression[]) {
+        super();
+    }
+}
+
+export class EnumMemberExpression extends Expression {
+    nodeType = Token.EnumMember;
+    constructor(public position: ExpressionPosition, public name: string, public value: number) {
+        super();
+    }
+}
+
 export function createExpression(type: Token, position: ExpressionPosition, ...args): Expression {
     switch (type) {
         case Token.Package: return Expression.createPackage(position, args)
@@ -213,6 +235,9 @@ export function createExpression(type: Token, position: ExpressionPosition, ...a
         case Token.RepeatedType: return Expression.createRepeatedType(position, args);
         case Token.MapType: return Expression.createMapType(position, args);
         case Token.Annotation: return Expression.createAnnotation(position, args);
+
+        case Token.EnumType: return Expression.createEnumType(position, args);
+        case Token.EnumMember: return Expression.createEnumMember(position, args);
 
         case Token.Service: return Expression.createService(position, args);
         case Token.Method: return Expression.createMethod(position, args);

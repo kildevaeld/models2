@@ -43,6 +43,7 @@ Elements
 
 Element
   = r:Record { return r; }
+  / e:EnumType { return e; }
   / i:Import { return i; }
   / s:Service { return s; }
 
@@ -125,6 +126,19 @@ ImportType
     return expression(Token.ImportType, p, t);
 	}
 
+EnumType 
+  = "enum" __  i:Identifier __ "{" __ e:enum_members __  "}" {
+    return expression(Token.EnumType, i, e);
+  }
+
+enum_members
+  = e:enum_member __ rest:(__ ";" __ e:enum_member { return e} )* {
+    return [e].concat(rest)
+  }
+
+enum_member
+  = i:Identifier __ "=" __ d:DIGIT+ { return expression(Token.EnumMember, i, parseInt(d.join('')))  }
+  / i:Identifier { return expression(Token.EnumMember, i, null) }
 
 Annotation
 	= "@" a:Identifier "(" o:Argument ")" {

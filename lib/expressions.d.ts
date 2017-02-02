@@ -25,6 +25,8 @@ export declare abstract class Expression {
     static createService(position: ExpressionPosition, args: any[]): ServiceExpression;
     static createMethod(position: ExpressionPosition, args: any[]): MethodExpression;
     static createAnonymousRecord(position: ExpressionPosition, args: any[]): AnonymousRecordExpression;
+    static createEnumType(position: ExpressionPosition, args: any[]): EnumTypeExpression;
+    static createEnumMember(position: ExpressionPosition, args: any[]): EnumMemberExpression;
 }
 export declare class PackageExpression extends Expression {
     position: ExpressionPosition;
@@ -129,5 +131,19 @@ export declare class AnonymousRecordExpression extends Expression {
     properties: PropertyExpression[];
     nodeType: Token;
     constructor(position: ExpressionPosition, properties: PropertyExpression[]);
+}
+export declare class EnumTypeExpression extends Expression {
+    position: ExpressionPosition;
+    name: string;
+    members: EnumMemberExpression[];
+    nodeType: Token;
+    constructor(position: ExpressionPosition, name: string, members: EnumMemberExpression[]);
+}
+export declare class EnumMemberExpression extends Expression {
+    position: ExpressionPosition;
+    name: string;
+    value: number;
+    nodeType: Token;
+    constructor(position: ExpressionPosition, name: string, value: number);
 }
 export declare function createExpression(type: Token, position: ExpressionPosition, ...args: any[]): Expression;

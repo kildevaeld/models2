@@ -2,6 +2,11 @@ package models;
 
 import "address";
 
+enum Hello {
+    test = 1;
+    rapper
+}
+
 @doc("Person is the head of state")
 @gotags(["json","msgpack"])
 @swiftrealm
