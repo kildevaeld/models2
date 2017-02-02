@@ -176,6 +176,7 @@ export interface PreprocessOptions {
 
 // Validate Record types
 // Validate Services
+// Validate Enum
 export class Preprocessor {
     parent: string;
     previousParent: string
