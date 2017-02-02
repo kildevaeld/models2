@@ -4,7 +4,7 @@ import "address";
 
 enum Hello {
     test = 1;
-    rapper
+    rapper;
 }
 
 @doc("Person is the head of state")

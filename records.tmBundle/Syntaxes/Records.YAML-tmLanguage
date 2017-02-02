@@ -1,0 +1,168 @@
+# [PackageDev] target_format: plist, ext: tmLanguage
+name: Records
+scopeName: source.record
+fileTypes: [record]
+uuid: 750ac1f3-b172-48de-b1a4-a3c310c4a293
+
+patterns:
+- include: '#comments'
+
+- include: '#storagetypes'
+
+- include: '#enum'
+
+- include: '#message'
+
+- include: '#constants'
+
+- include: '#strings'
+
+- include: '#packaging'
+
+- include: '#service'
+
+- include: '#annotation'
+
+- name: constant.numeric.proto
+  match: \b((0(x|X)[0-9a-fA-F]*)|(([0-9]+\.?[0-9]*)|(\.[0-9]+))((e|E)(\+|-)?[0-9]+)?)\b
+
+repository:
+  comments:
+    patterns:
+    - name: comment.block.proto
+      begin: /\*
+      end: \*/
+    - name: comment.line.double-slash.proto
+      begin: //
+      end: $\n?
+
+  constants:
+    name: constant.language.proto
+    match: \b(true|false)\b
+
+  enum:
+    begin: (enum)(\s+)([A-Za-z][A-Za-z0-9_]*)(\s*)(\{)?
+    beginCaptures:
+      '1': {name: keyword.source.proto}
+      '3': {name: entity.name.class.proto}
+    end: \}
+    patterns:
+    - include: '#comments'
+    - name: keyword.source.proto
+      match: \b(to|extensions)\b
+    - match: ([A-Za-z][A-Za-z0-9_]+)(\s*)((=)(\s*)([0-9]*))?;
+      captures:
+        '1': {name: constant.other.proto}
+        '4': {name: keyword.operator.type.annotation.record }
+        '6': {name: constant.numeric.record}
+
+  message:
+    begin: (record)(\s+)([A-Za-z][A-Za-z0-9_.]*)(\s*)(\{)
+    beginCaptures:
+      '1': {name: keyword.source.proto}
+      '3': {name: entity.name.class.message.proto}
+    end: \}
+    patterns:
+    - include: '#annotation'
+    #- include: $self
+    #- include: '#enum'
+    #- include: '#option'
+    - include: '#comments'
+    #- include: '#oneof'
+    #- begin: (optional|repeated|required|to|extensions)(\s+)
+    #  beginCaptures:
+    #    '1': {name: keyword.source.proto}
+    #  end: ;
+    - begin: ([A-Za-z][A-Za-z0-9_]*)(\s*)(:)(\s*)
+      beginCaptures:
+        '1': {name: variable.object.prototype.record}
+        '3': {name: keyword.operator.type.annotation.record }
+      end: ;
+      patterns:
+      - match: ([A-Za-z][A-Za-z0-9_]*)
+        captures:
+          '1': {name: entity.name.type.record}
+      - include: '#storagetypes'
+      - match: (map)<([A-Za-z][A-Za-z0-9_]*),\s*([A-Za-z][A-Za-z0-9_]*)>\s+([A-Za-z][A-Za-z0-9_]*)
+        captures:
+          '1': {name: keyword.source.proto}
+          '4': {name: entity.name.class.proto}
+
+      - begin: (\[)
+        beginCaptures:
+          '1': { name: meta.brace.square.record }
+        end: (\])
+        endCaptures:
+          '1': { name: meta.brace.square.record }
+        patterns:
+          - include: '#storagetypes'
+          - match: ([A-Za-z][A-Za-z0-9_]*)
+            captures:
+              '1': {name: entity.name.type.record}
+      
+
+  
+  packaging:
+    patterns:
+    - match: (import)(?=(\s+)(["]?[./A-Za-z][A-Za-z0-9-_./]*["]?)(;))
+      captures:
+        '1': {name: keyword.control.record}
+        '2': {name: entity.name.tag}
+    - match: (package)(?=(\s+)(["]?[A-Za-z][A-Za-z0-9-_./]*["]?)(;))
+      captures:
+        '1': {name: keyword.control.record}
+        '2': {name: entity.name.tag}
+
+
+  annotation:
+    begin: (@)([a-zA-Z][a-zA-Z0-9_]*)+\(
+    beginCaptures:
+      '1': {name: punctuation.decorator.record}
+      '2': {name: entity.name.function.record }
+    end: \)
+    patterns:
+    - include: '#json_value'
+
+  service:
+    begin: (service)(\s+)([A-Za-z][A-Za-z0-9_.]*)(\s*)(\{)?
+    beginCaptures:
+      '1': {name: keyword.source.proto}
+      '3': {name: entity.name.class.message.proto}
+    end: \}
+    patterns:
+    - include: '#comments'
+    - begin: (rpc)\s+([A-Za-z][A-Z-a-z0-9_]+)\s*\((stream\s+)?([A-Za-z0-9_]+)\)\s+(returns)\s+\((stream\s+)?([A-Za-z0-9_]+)\)\{?
+      beginCaptures:
+        '1': {name: keyword.source.proto}
+        '2': {name: entity.name.function}
+        '3': {name: keyword.source.proto}
+        '5': {name: keyword.source.proto}
+        '6': {name: keyword.source.proto}
+      end: \}|;
+      patterns:
+      - include: '#comments'
+      - include: '#option'
+
+  storagetypes:
+    name: support.type.primitive.record
+    match: \b(double|float|int32|int64|uint32|uint64|int16|uint16|int8|uint8|boolean|string|bytes|date)\b
+
+  strings:
+    name: string.quoted.double.proto
+    begin: '"'
+    end: '"'
+
+  json_value:
+    patterns:
+    - include: '#json_array'
+    - include: '#strings'
+    - match: ([0-9]+)
+      captures:
+        '1': { name: constant.numeric.record }
+
+  json_array:
+    begin: \[
+    patterns:
+    - include: '#json_value'
+    end: \]
+

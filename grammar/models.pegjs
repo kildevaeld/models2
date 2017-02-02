@@ -132,7 +132,7 @@ EnumType
   }
 
 enum_members
-  = e:enum_member __ rest:(__ ";" __ e:enum_member { return e} )* {
+  = e:enum_member __ semi rest:(__ e:enum_member __ semi { return e} )* {
     return [e].concat(rest)
   }
 
