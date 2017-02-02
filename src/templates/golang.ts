@@ -155,6 +155,7 @@ export class GolangVisitor extends BaseVisitor {
         let tags = this.generateTags(name, expression);
         let type = this.visit(expression.type);
         let isPointer = !!expression.get("gopointer")
+        type = expression.get('gotype') || type;
         let comment: any = expression.get('doc');
         comment = comment ? '// ' + comment + '\n' + Indention : ''
 
@@ -235,6 +236,10 @@ export const Meta: Description = {
             gopointer: {
                 arguments: "boolean",
                 description: "Declare the field as a pointer"
+            },
+            gotype: {
+                arguments: 'string',
+                description: "Override Go type"
             },
             doc: {
                 arguments: "string"
