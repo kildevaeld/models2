@@ -26,7 +26,7 @@ function checkArgument(): (arg) => boolean {
   var slice = Array.prototype.slice;
   var args = slice.call(arguments);
   return function (arg) {
-     
+
     for (var i = 0, len = args.length; i < len; i++) {
       if (args[i](arg) === true) return true;
     }
@@ -53,14 +53,15 @@ function checkArray() {
   }
 }
 
-function checkTypedObject(a: { name: string; type: Expression }) {
+function checkTypedObject(a: { name: string; type: PropertyDescriptor[] }) {
   var slice = Array.prototype.slice;
   return function (args) {
     if (typeof args !== 'object') return false;
+
   }
 }
 
-function checkObject(...checkers:Checker[]) {
+function checkObject(...checkers: Checker[]) {
   return function (args) {
     if (typeof args !== 'object') return false;
     for (let key in args) {
@@ -74,10 +75,10 @@ export class Visitor {
 
   parse(exp: Expression): Checker {
     let out = new Function('o', `return ${this.visit(exp)}`)({
-      checkArgument, checkArray, checkObject, checkTypedObject, 
+      checkArgument, checkArray, checkObject, checkTypedObject,
       isString, isNumber, isBoolean
     });
-    
+
     return out
   }
 
@@ -94,36 +95,28 @@ export class Visitor {
   visitArgument(exp: ArgumentExpression) {
     let checkers = exp.types.map(m => this.visit(m))
     return `o.checkArgument(${checkers.join(',')})`;
-    //return `(${checkArgument.toString()})(${checkers.join(',')})`
   }
 
   visitPrimitive(exp: PrimitiveTypeExpression) {
     switch (exp.type) {
-      /*case PrimitiveType.String: return isString.toString();
-      case PrimitiveType.Number: return isNumber.toString();
-      case PrimitiveType.Boolean: return isBoolean.toString();*/
-      case PrimitiveType.String: return 'o.isString' //.toString();
-      case PrimitiveType.Number: return 'o.isNumber' //.toString();
-      case PrimitiveType.Boolean: return 'o.isBoolean' //.toString();
+
+      case PrimitiveType.String: return 'o.isString'
+      case PrimitiveType.Number: return 'o.isNumber'
+      case PrimitiveType.Boolean: return 'o.isBoolean'
     }
   }
 
   visitArray(exp: ArrayTypeExpression) {
     let checkers = exp.types.map(m => this.visit(m));
-    return `o.checkArray(${checkers.join(',')})`
-
-    //    return `${checkArray.toString()}(${checkers.join(',')})`
+    return `o.checkArray(${checkers.join(',')})`;
   }
 
   visitObject(exp: ObjectTypeExpression) {
-
     let checkers = exp.types.types.map(m => this.visit(m));
     return `o.checkObject(${checkers.join(',')})`
-    //return `${checkArray.toString()}(${checkers.join(',')})`
   }
 
   visitTypedObject(exp: TypedObjectTypeExpression) {
-    return `checkTypedObject(${exp.properties})`;
-    //return `${checkObject.toString()}(${exp.properties})`;
+    return `o.checkTypedObject(${exp.properties})`;
   }
 }

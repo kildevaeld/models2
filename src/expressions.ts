@@ -17,7 +17,7 @@ export abstract class Expression {
     abstract readonly nodeType: Token
 
     toJSON(full: boolean = false) {
-        //if (full) return this;
+        if (full === true) return this;
         return _.omit(this, 'position')
     }
 
